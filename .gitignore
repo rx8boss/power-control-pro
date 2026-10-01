@@ -1,0 +1,16 @@
+node_modules/
+dist/
+Backups/
+*.zip
+*.exe
+native/
+outputs-native/
+*.sln
+*.vcxproj
+*.obj
+*.pdb
+*.res
+.cursor/
+.DS_Store
+Thumbs.db
+*.log
