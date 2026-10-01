@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
   <defs><filter id="g"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-  <path d="M75 8 25 72h30l-6 48 54-70H73z" fill="#c9fbff" stroke="#19e8ff" stroke-width="5" stroke-linejoin="round" filter="url(#g)"/>
+  <circle cx="64" cy="67" r="40" stroke="#49eaff" stroke-width="8" filter="url(#g)"/>
+  <path d="M48 16h32M64 27V16M64 46v23l17 10" stroke="#d9fbff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#g)"/>
 </svg>

@@ -1,2 +1,76 @@
 @import url("style.css");
-:root{--cyan:#8d98a5;--text:#f1f4f6;--muted:#aeb8c2;--green:#55a879;--pink:#de6b76;--gold:#c5a358}body{background:#171a1f}.app-header,footer{background:#20242a;border-color:#30363d}.card,.modal-box{border-color:#3b424b;background:#22272e;box-shadow:0 4px 14px #0008}.action-tile{border-color:#414952;background:#2a3037;color:#f1f4f6}.action-tile.danger{border-color:#744047;background:#35272a}.abort-tile,.status-panel,.logbox{border-color:#3b424b;background:#1c2127;color:#dce2e8}.window-button{border-color:#46505a;background:#303740;color:#f1f4f6}.timer-picker,.timer-picker .timer-duration-label,.timer-adjust{border-color:#48515a;background:#303740;color:#f1f4f6}.logbox,.users-list{scrollbar-color:#77838f #1c2127}
+
+/* Neutrales Dark-Design: dunkel, klar und ohne Neon-Leuchten. */
+:root { --cyan: #8d98a5; --text: #f1f4f6; --muted: #aeb8c2; --green: #55a879; --pink: #de6b76; --gold: #c5a358; }
+body { background: #171a1f; }
+body::before { display: none; }
+.circuit { background: #30363d; box-shadow: none; }
+.app-header { border-bottom-color: #30363d; background: #20242a; }
+.brand-mark, h1, h1 span, footer b { color: #f1f4f6; text-shadow: none; }
+.brand-mark { transform: none; filter: none; }
+.brand p, .card-heading p, .settings-title p { color: #aeb8c2; text-shadow: none; }
+.card, .modal-box { border-color: #3b424b; background: #22272e; box-shadow: 0 4px 14px #0008; }
+.card::after { display: none; }
+.heading-icon, .tile-icon { border: 0; border-radius: 0; background: transparent; color: #d6dde4; text-shadow: none; box-shadow: none; }
+img.heading-icon, img.tile-icon, .settings-title img, .settings-button img, .abort-tile img { filter: none; }
+.action-tile, .action-tile.danger, .action-tile.green, .action-tile.steel { border-color: #414952; background: #2a3037; box-shadow: none; color: #f1f4f6; }
+.action-tile.danger { border-color: #744047; background: #35272a; }
+.action-tile.green { border-color: #3e654d; background: #27342c; }
+.action-tile small, .abort-tile small, .autostart-row small { color: #aeb8c2; }
+.action-tile:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.12); box-shadow: none; }
+.abort-tile, .status-panel, .logbox { border-color: #3b424b; background: #1c2127; box-shadow: none; color: #dce2e8; }
+.logbox, .users-list { scrollbar-color: #77838f #1c2127; }
+.logbox::-webkit-scrollbar-track, .users-list::-webkit-scrollbar-track { background: #1c2127; box-shadow: inset 0 0 0 1px #3b424b; }
+.logbox::-webkit-scrollbar-thumb, .users-list::-webkit-scrollbar-thumb { border-color: #1c2127; background: #77838f; box-shadow: none; }
+.logbox::-webkit-scrollbar-button:single-button, .users-list::-webkit-scrollbar-button:single-button { border-left-color: #4b5560; background: #2a3037; }
+.status-check { border-color: #55a879; color: #73c796; text-shadow: none; box-shadow: none; }
+.status-divider { border-color: #343b43; }
+.switch { background: #4b5560; }
+.autostart-row input:checked + span + .switch { background: #438660; box-shadow: none; }
+.log-actions button, .settings-action button, .modal-actions button { border-color: #4a535d; background: #303740; color: #f1f4f6; box-shadow: none; }
+.log-actions button.delete, .modal-actions .danger { border-color: #8b4b54; background: #482b30; color: #ffd9dd; }
+.window-controls, .language-switch { border-color: #3f4851; background: #20252b; box-shadow: none; }
+.window-button, .window-button.settings-button { border-color: #46505a; background: #303740; color: #f1f4f6; box-shadow: none; }
+.window-button:hover, .window-button.settings-button:hover { background: #424c57; box-shadow: none; }
+.window-button.close-button { border-color: #874952; background: #4a2b31; color: #ffd8dc; }
+.window-button.close-button:hover { background: #6d3540; box-shadow: none; }
+.language-flag:hover { border-color: #77838f; background: #3b4650; box-shadow: none; }
+.language-flag.active { border-color: #9ea9b4; background: #454e58; box-shadow: none; }
+.settings-row, .settings-select, .settings-volume, .settings-action { border-top-color: #353d46; }
+.settings-row small, .settings-volume small, .settings-action small { color: #aeb8c2; }
+.settings-select, .settings-volume output { color: #e1e6eb; }
+.settings-select select { border-color: #4a535d; color: #f1f4f6; background: #292f36; }
+.settings-volume input[type="range"], .settings-row input { accent-color: #aab4be; }
+.timer-picker { border-color: #414952; background: #1f252b; box-shadow: none; }
+.timer-picker .timer-duration-label, .timer-adjust { border-color: #48515a; background: #303740; color: #f1f4f6; text-shadow: none; box-shadow: none; }
+.timer-adjust:hover { background: #414b56; box-shadow: none; }
+footer { border-top-color: #30363d; color: #aeb8c2; background: #20242a; }
+#settings-close { border-color: #58636e; background: #3a434d; color: #f1f4f6; box-shadow: none; }
+#settings-close:hover { background: #4a5662; box-shadow: none; }
+
+/* Zweite Seite im Dark-Design: klare Kontraste ohne Neon. */
+.page-navigation { top: 15px; left: 13px; gap: 3px; padding: 3px; border-color: #454f59; border-radius: 7px; background: #1b2026; box-shadow: 0 2px 7px #0008; }
+.page-navigation button { width: 27px; height: 25px; border-color: #56616c; border-radius: 5px; background: #303841; color: #f1f4f6; font-size: 1.05rem; font-weight: 700; line-height: 1; }
+.page-navigation button:hover:not(:disabled) { background: #48535e; color: #fff; }
+.page-navigation button:active:not(:disabled) { background: #252c34; }
+.page-navigation button:disabled { border-color: #3a434c; background: #252b31; color: #68737e; opacity: 1; }
+.page-navigation span { min-width: 30px; color: #cbd3db; font-size: .56rem; font-weight: 700; }
+.users-card, .users-status-card, .users-log-card { border-color: #3b424b; background: #22272e; box-shadow: 0 3px 10px #0007; }
+.users-heading { padding-bottom: 5px; border-bottom: 1px solid #3b434c; }
+.users-heading #current-user { color: #b8c2cc; }
+.users-actions { gap: 6px; }
+.users-actions > button { border-color: #515b65; border-radius: 6px; background: #303740; color: #edf1f4; box-shadow: none; }
+.users-actions > button:hover { background: #47525d; color: #fff; }
+.users-list { border-color: #3c4650; border-radius: 7px; background: #1b2026; color: #dce2e8; box-shadow: inset 0 1px #11161b; }
+.user-row { border-bottom-color: #323a43; }
+.user-row:hover { background: #29313a; }
+.user-avatar { color: #bac5ce; text-shadow: none; }
+.user-name { color: #eef2f5; }
+.user-description { color: #aeb8c2; }
+.user-state.enabled { color: #bde5c9; background: #294538; }
+.user-state.disabled { color: #ffd2d7; background: #542f35; }
+.user-role { border-color: #59636d; border-radius: 8px; background: #303841; color: #e4e9ed; }
+.user-role.admin { border-color: #4e8966; background: #274334; color: #c7edd3; }
+.user-role.standard { border-color: #566f87; background: #293a4a; color: #c9e1f2; }
+.users-status-card .status-panel { border-color: #3b424b; background: #1c2127; }
+.users-log-card .logbox { border-color: #3b424b; background: #1c2127; color: #dce2e8; }

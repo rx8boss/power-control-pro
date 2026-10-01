@@ -1,0 +1,64 @@
+@import url("style.css");
+
+/* Linux Mint: gedämpfte Grün- und Grauflächen mit klar sichtbaren Symbolen. */
+*, *::before, *::after { text-shadow: none !important; box-shadow: none !important; transition: none !important; animation: none !important; }
+:root { color-scheme: light; --cyan: #376d4d; --text: #24352b; --muted: #506b5a; --green: #4e8862; --pink: #a9585e; --gold: #927639; }
+body { color: #24352b; background: #bcc9c0; }
+body::before { display: none; }
+.circuit { border-top-color: #c7d6cc; background: linear-gradient(90deg, transparent 0 8%, #78ad8d 8% 13%, transparent 13% 18%, #78ad8d 18% 22%, transparent 22% 80%, #78ad8d 80% 87%, transparent 87%); box-shadow: none; }
+.app-header { border-bottom-color: #4f9d69; background: #d1ddd5; box-shadow: 0 2px 8px #35534033; }
+h1, h1 span { color: #315d42; text-shadow: none; }
+.brand p { color: #668674; }
+.brand-mark, footer .footer-bolt { transform: none; filter: none; }
+.window-controls { border-color: #4d705d; background: #5e7868; box-shadow: none; }
+.page-navigation { border-color: #4d705d; background: #5e7868; box-shadow: none; }
+.window-button, .window-button.settings-button, .page-navigation button { border-color: #3f6651; background: #d4dfd6; color: #203f2f; box-shadow: none; }
+.window-button:hover, .window-button.settings-button:hover, .page-navigation button:hover:not(:disabled) { background: #b9cfc0; color: #173322; box-shadow: none; }
+.page-navigation span { color: #f4f8f4; font-weight: 800; text-shadow: none; }
+.card, .users-card, .users-status-card, .users-log-card { border-color: #96b3a1; background: #cddad1; box-shadow: 0 2px 7px #2943342b; }
+.card::after { border-color: #aac1b2; background: linear-gradient(135deg, transparent 48%, #aac1b2 49% 51%, transparent 52%); }
+.card-heading p, .status-main p { color: #3e604b; }
+.heading-icon, .tile-icon { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+img.heading-icon, img.tile-icon, .settings-title img, .settings-button img, .abort-tile img { filter: grayscale(.55) sepia(.2) saturate(.8) contrast(1.15); }
+.action-tile, .action-tile.blue, .action-tile.green, .action-tile.steel { border-color: #7ca48b; background: #b5cabd; color: #294635; box-shadow: none; }
+.action-tile.danger, .abort-tile { border-color: #c4868b; background: #e0bdbe; box-shadow: none; }
+.action-tile strong, .abort-tile strong { color: #294635; text-shadow: none; }
+.action-tile small, .abort-tile small { color: #3e604b; }
+.status-panel, .logbox, .users-list { border-color: #8eaf9b; background: #b8cbbf; box-shadow: none; color: #294635; }
+.status-check, #status, #status.error { box-shadow: none; text-shadow: none; }
+.users-heading #current-user { color: #3d7654; }
+.user-name { color: #244b35; }
+.user-description { color: #365944; }
+.user-avatar { color: #2d8050; }
+.users-list .empty, .users-list .loading { color: #3e604b; }
+.logbox { color: #244b35; }
+.muted, .status-main .muted { color: #3e604b; }
+.users-list .user-row { border-bottom-color: #93ad9c; }
+.users-list .user-row:hover { background: #c5d7ca; }
+.timer-picker, .timer-picker .timer-duration-label, .timer-adjust, .users-actions > button, .log-actions button { border-color: #6d937c; background: #c0d1c6; color: #294d38; box-shadow: none; text-shadow: none; }
+.settings-modal-box, .modal-box { border-color: #91af9b; background: #cbd8d0; box-shadow: 0 5px 18px #27403233; }
+.settings-select select, .language-switch { border-color: #8ba995; background: #bccfc2; color: #294d38; }
+.settings-row, .settings-select, .settings-volume, .settings-action, #settings-modal .modal-actions { border-top-color: #9bb5a4; }
+.settings-title p, .settings-row small, .settings-volume small, .settings-action small { color: #456653; }
+.settings-row strong, .settings-volume strong, .settings-action strong, .settings-select { color: #294d38; }
+.settings-volume output { color: #315f46; }
+.settings-row input, .settings-volume input[type="range"] { accent-color: #278b6d; }
+.sound-style-control select { border-color: #7fa28d; background: #c0d1c6; color: #294d38; }
+.sound-style-control button { border-color: #527d66; background: #477960; color: #f3faf5; box-shadow: none; }
+.sound-style-control button:hover { background: #315f49; color: #fff; box-shadow: none; }
+footer { border-top-color: #91ad9a; background: #c0d0c5; color: #3e604b; }
+.user-role { border-color: #789d87; border-radius: 5px; background: #b7cabd; color: #294d38; }
+.user-role.admin { border-color: #5e9970; background: #a8cdb0; color: #1f5834; }
+.user-role.standard { border-color: #7e9f8a; background: #b7cabd; color: #294d38; }
+.logbox, .users-list { scrollbar-color: #6e9780 #adbfb2; }
+.logbox::-webkit-scrollbar-track, .users-list::-webkit-scrollbar-track { background: #adbfb2; box-shadow: inset 0 0 0 1px #87a593; }
+.logbox::-webkit-scrollbar-thumb, .users-list::-webkit-scrollbar-thumb { border-color: #adbfb2; background: linear-gradient(#9cbba7, #5f896f); box-shadow: none; }
+.logbox::-webkit-scrollbar-thumb:hover, .users-list::-webkit-scrollbar-thumb:hover { background: linear-gradient(#b7d2c0, #6d9b7c); }
+.logbox::-webkit-scrollbar-button:single-button, .users-list::-webkit-scrollbar-button:single-button { border-left-color: #7d9d89; background: #b5c8bb; }
+
+/* Navigation und Optionen bleiben auch in Nebenansichten im Mint-Farbschema. */
+.page-navigation button:disabled { border-color: #718d7c; background: #9eafa4; color: #4c6757; opacity: 1; }
+.language-flag:hover, .language-flag.active { border-color: #6f9c7c; background: #a9c4b1; box-shadow: none; }
+.settings-action button, .modal-actions button, #settings-close { border-color: #7fa28d; background: #b9cebf; color: #294d38; box-shadow: none; }
+.settings-action button:hover, .modal-actions button:hover, #settings-close:hover { background: #a9c4b1; color: #203f2f; box-shadow: none; }
+button:focus-visible, input:focus-visible { outline: 2px solid #3f7655; outline-offset: 2px; }

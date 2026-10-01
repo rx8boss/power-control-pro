@@ -1,0 +1,106 @@
+@import url("style.css");
+
+/* Klassisch: Windows-XP-Luna-Stil, ohne Neon-Effekte. */
+:root { --cyan: #245edb; --text: #10245a; --muted: #315a98; --green: #3e8b34; --pink: #bd3e42; --gold: #bd861b; }
+body { color: #10245a; background: linear-gradient(135deg, #7ca7e8, #d5e3f6 56%, #91b5ec); }
+body::before { display: none; }
+.circuit { height: 6px; background: linear-gradient(90deg, #1f52b5, #6f9deb, #1f52b5); box-shadow: none; }
+.app-header { border-bottom: 2px solid #174ca7; background: linear-gradient(#4d8ff2 0%, #2869d3 45%, #154ba9 100%); }
+.brand-mark, h1, h1 span, footer b { color: #fff; text-shadow: 1px 1px #123c89; }
+.brand-mark { transform: none; filter: none !important; }
+.brand p { color: #e9f2ff; text-shadow: 1px 1px #123c89; }
+.card { border: 2px solid #316ac5; border-radius: 8px; background: linear-gradient(#dceaff, #b7d0f2); box-shadow: inset 0 1px #edf5ff, 0 2px 5px #1a4f9c66; }
+.card::after { display: none; }
+.card-heading h2, .settings-title h2 { color: #123f92; text-shadow: none; }
+.card-heading p, .settings-title p { color: #315a98; text-shadow: none; }
+.heading-icon, .tile-icon { border: 0; border-radius: 0; background: transparent; color: #174ea6; text-shadow: none; box-shadow: none; }
+/* Keine Filter im klassischen Theme: die originalen SVG-Symbole bleiben vollständig sichtbar. */
+img.heading-icon, img.tile-icon, .settings-title img, .settings-button img, .abort-tile img { filter: none !important; }
+.action-tile, .action-tile.danger, .action-tile.green, .action-tile.steel { border: 1px solid #174ca7; border-radius: 6px; background: linear-gradient(#8fbbf5, #3978d4); box-shadow: inset 0 1px #d7e8ff; color: #fff; }
+.action-tile strong { color: #fff; text-shadow: 1px 1px #17458e; }
+.action-tile small { color: #eaf3ff; }
+.action-tile:hover:not(:disabled) { transform: none; filter: none; border-color: transparent; background: linear-gradient(#b9d8ff, #5d98e7); box-shadow: none; }
+.abort-tile { border-color: #a84723; background: linear-gradient(#f59b79, #ca4826); box-shadow: inset 0 1px #ffd5c5; }
+.abort-tile strong { color: #fff; text-shadow: 1px 1px #8e2c16; }
+.abort-tile small { color: #fff0e9; }
+.abort-tile, .status-panel { border-color: #7ca7e8; border-radius: 7px; background: linear-gradient(#e5f0ff, #bdd6f6); box-shadow: inset 0 1px #fff; }
+.abort-tile { border-color: #a84723; background: linear-gradient(#f59b79, #ca4826); box-shadow: inset 0 1px #ffd5c5; }
+.status-check { border-color: #3e8b34; color: #287526; text-shadow: none; box-shadow: none; }
+.status-divider { border-color: #aac4e8; }
+.windows { color: #1f57b8; text-shadow: none; }
+.switch { background: #9cb5d6; }
+.autostart-row input:checked + span + .switch { background: #5cb34c; box-shadow: none; }
+.logbox { border-color: #6e9bdb; background: #e7f1ff; color: #234e8c; box-shadow: inset 0 1px #fff; }
+.logbox, .users-list { scrollbar-color: #3978d4 #cfe2fb; }
+.logbox::-webkit-scrollbar-track, .users-list::-webkit-scrollbar-track { background: #cfe2fb; box-shadow: inset 0 0 0 1px #83ace4; }
+.logbox::-webkit-scrollbar-thumb, .users-list::-webkit-scrollbar-thumb { border-color: #cfe2fb; background: linear-gradient(#8fbbf5, #3978d4); box-shadow: none; }
+.logbox::-webkit-scrollbar-button:single-button, .users-list::-webkit-scrollbar-button:single-button { border-left-color: #5e91d8; background: #9fc2ef; }
+.log-actions button, .settings-action button, .modal-actions button { border: 1px solid #3c73c5; border-radius: 4px; background: linear-gradient(#fff, #b9d4fb); color: #102f71; box-shadow: inset 0 1px #fff; }
+.log-actions button:hover, .settings-action button:hover, .modal-actions button:hover { background: linear-gradient(#e8f3ff, #94bdf2); color: #071d55; }
+.log-actions button.delete, .modal-actions .danger { border-color: #b75257; background: linear-gradient(#fff7f7, #e9abb0); color: #7e1c27; }
+.window-controls, .language-switch { border-color: #174ca7; background: linear-gradient(#5d9bf0, #2f6dc8); box-shadow: inset 0 1px #a9caff; }
+.window-button, .window-button.settings-button { border-color: #174ca7; border-radius: 4px; background: linear-gradient(#8fbbf5, #3978d4); color: #fff; box-shadow: inset 0 1px #d7e8ff; }
+.window-button:hover, .window-button.settings-button:hover { background: linear-gradient(#bdd9ff, #4f8ee5); color: #fff; box-shadow: inset 0 1px #fff; }
+.window-button.close-button { border-color: #a84723; background: linear-gradient(#f59b79, #ca4826); color: #fff; }
+.window-button.close-button:hover { background: linear-gradient(#ffbc9e, #e25a33); box-shadow: none; }
+.language-switch { position: relative; z-index: 3; }
+.language-flag { filter: none; pointer-events: auto; -webkit-app-region: no-drag; }
+.language-flag.active { border-color: #fff; background: #1e55ac; box-shadow: inset 0 1px #0d3985; }
+.modal-box { border-color: #316ac5; background: linear-gradient(#dceaff, #b7d0f2); box-shadow: 0 5px 18px #123e8b88; }
+.settings-row, .settings-select, .settings-volume, .settings-action { border-top-color: #aac4e8; }
+.settings-row strong, .settings-volume strong, .settings-action strong { color: #163e84; }
+.settings-row small, .settings-volume small, .settings-action small { color: #365e99; }
+.settings-select, .settings-volume output { color: #163e84; }
+.settings-select select { border-color: #6d9de1; border-radius: 3px; color: #102f71; background: #eaf3ff; }
+.settings-volume input[type="range"], .settings-row input { accent-color: #3978d4; }
+.timer-picker { border-color: #6d9de1; background: #b6d0f2; box-shadow: inset 0 1px #eaf4ff; }
+.timer-picker .timer-duration-label, .timer-adjust { border-color: #4a7fc9; background: linear-gradient(#d7e9ff, #8db7eb); color: #163e84; text-shadow: none; box-shadow: inset 0 1px #fff; }
+.timer-adjust:hover { background: linear-gradient(#b9d8ff, #5d98e7); color: #102f71; box-shadow: none; }
+footer { border-top-color: #174ca7; color: #e9f2ff; background: linear-gradient(#3a78d1, #174ca7); }
+#settings-close { border-color: #174ca7; background: linear-gradient(#8fbbf5, #3978d4); color: #fff; box-shadow: none; }
+#settings-close:hover { background: linear-gradient(#bdd9ff, #4f8ee5); box-shadow: none; }
+
+/* Zweite Seite im Luna-Stil: Navigation, Benutzerliste und untere Karten. */
+.page-navigation { top: 15px; left: 13px; gap: 2px; padding: 2px; border: 1px solid #174ca7; border-radius: 4px; background: linear-gradient(#7fb0f1, #2b68c4); box-shadow: inset 0 1px #cce1ff; }
+.page-navigation button { width: 27px; height: 24px; border: 1px solid #174ca7; border-radius: 3px; background: linear-gradient(#d9ebff, #82afe7); color: #123f92; font-family: Tahoma, Arial, sans-serif; font-size: 1.05rem; font-weight: 700; line-height: 1; text-shadow: none; }
+.page-navigation button:hover:not(:disabled) { background: linear-gradient(#f5fbff, #a6c8f2); color: #092d72; }
+.page-navigation button:active:not(:disabled) { background: linear-gradient(#6d9de1, #b9d7fb); }
+.page-navigation button:disabled { border-color: #6c90c4; background: #9bb9df; color: #5d7da8; opacity: 1; }
+.page-navigation span { min-width: 30px; color: #fff; font-family: Tahoma, Arial, sans-serif; font-size: .56rem; font-weight: 700; text-shadow: 1px 1px #17458e; }
+.users-page { background: transparent; }
+.users-card, .users-status-card, .users-log-card { border-color: #316ac5; border-radius: 8px; background: linear-gradient(#dceaff, #b7d0f2); box-shadow: inset 0 1px #edf5ff, 0 2px 5px #1a4f9c66; }
+.users-heading { padding-bottom: 5px; border-bottom: 1px solid #91b4e5; }
+.users-heading #current-user { color: #315a98; font-family: Tahoma, Arial, sans-serif; }
+.user-role { border-color: #6f9de0; border-radius: 3px; background: #d6e7fb; color: #163e84; font-family: Tahoma, Arial, sans-serif; }
+.user-role.admin { border-color: #4b913e; background: #d8efd4; color: #276f28; }
+.user-role.standard { border-color: #6f9de0; background: #d6e7fb; color: #163e84; }
+.users-actions { gap: 5px; }
+.users-actions > button { border: 1px solid #3c73c5; border-radius: 4px; background: linear-gradient(#fff, #b9d4fb); color: #102f71; box-shadow: inset 0 1px #fff; font-family: Tahoma, Arial, sans-serif; }
+.users-actions > button:hover { background: linear-gradient(#e8f3ff, #94bdf2); color: #071d55; }
+.users-list { border-color: #6e9bdb; border-radius: 5px; background: #e7f1ff; color: #234e8c; box-shadow: inset 0 1px #fff; }
+.user-row { border-bottom-color: #aac4e8; }
+.user-row:hover { background: #d4e7ff; }
+.user-avatar { color: #245edb; text-shadow: none; }
+.user-name { color: #123f92; }
+.user-description { color: #315a98; }
+.user-state.enabled { color: #276f28; background: #ccebc9; }
+.user-state.disabled { color: #8d2a32; background: #f4c7cb; }
+.users-status-card .status-panel { border-color: #7ca7e8; border-radius: 7px; background: linear-gradient(#e5f0ff, #bdd6f6); }
+.users-log-card .logbox { border-color: #6e9bdb; background: #e7f1ff; color: #234e8c; }
+
+/* Klassische Aktionsflächen: kein äußerer Rahmen, dafür größere System-Icons. */
+.action-tile, .action-tile.danger, .action-tile.green, .action-tile.steel, .abort-tile { border: 0; }
+.action-tile { padding-top: 4px; padding-bottom: 4px; }
+.action-tile .tile-icon,
+body[data-window-size="compact"] .action-tile .tile-icon,
+body[data-window-size="standard"] .action-tile .tile-icon,
+body[data-window-size="large"] .action-tile .tile-icon,
+body[data-window-size="xlarge"] .action-tile .tile-icon { width: clamp(56px, 6vw, 72px); height: clamp(56px, 6vw, 72px); padding: 4px; flex-basis: clamp(56px, 6vw, 72px); }
+
+/* Klassische Oberfläche: keine Neon-, Bewegungs- oder Schatteneffekte. */
+*, *::before, *::after { animation: none !important; box-shadow: none !important; text-shadow: none !important; transition: none !important; }
+img, .language-flag { filter: none !important; }
+.card, .modal-box, .action-tile, .abort-tile, .status-panel, .logbox, .timer-picker, .window-controls, .language-switch { box-shadow: none !important; }
+.card::after { display: none !important; }
+.action-tile:hover:not(:disabled), .timer-adjust:hover, .window-button:hover, .language-flag:hover, .log-actions button:hover, .settings-action button:hover, .modal-actions button:hover { transform: none; filter: none; box-shadow: none !important; }
+.abort-tile:hover:not(:disabled) { background: linear-gradient(#ffad95, #e24d30); border-color: transparent; }

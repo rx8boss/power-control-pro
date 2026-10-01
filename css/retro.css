@@ -1,0 +1,40 @@
+@import url("style.css");
+
+/* Retro Terminal: ruhige CRT- und Kommandozeilenoptik ohne Neon. */
+:root { --cyan: #9acb72; --text: #d8e9c4; --muted: #9fb889; --green: #a6d77a; --pink: #d98072; --gold: #d3b66a; }
+body { color: #d8e9c4; font-family: Consolas, "Courier New", monospace; background: #11160e; }
+body::before { opacity: .18; background-image: linear-gradient(#9acb7217 1px, transparent 1px), linear-gradient(90deg, #9acb7217 1px, transparent 1px); }
+.circuit { border-top-color: #596d46; background: linear-gradient(90deg, transparent 0 8%, #789d59 8% 13%, transparent 13% 18%, #789d59 18% 22%, transparent 22% 80%, #789d59 80% 87%, transparent 87%); box-shadow: none; }
+.app-header { border-bottom-color: #667d51; background: #1a2115; box-shadow: none; }
+h1, h1 span { color: #d8e9c4; text-shadow: none; }
+.brand p { color: #9fb889; }
+.brand-mark, footer .footer-bolt { transform: none; filter: none; }
+.window-controls, .page-navigation { border-color: #667d51; background: #1b2415; box-shadow: none; }
+.window-button, .window-button.settings-button, .page-navigation button { border-color: #718c59; background: #2b371f; color: #d8e9c4; box-shadow: none; }
+.window-button:hover, .window-button.settings-button:hover, .page-navigation button:hover:not(:disabled) { background: #405333; box-shadow: none; }
+.card, .users-card, .users-status-card, .users-log-card { border-color: #637b4d; background: #1a2115; box-shadow: none; }
+.card::after { border-color: #52673f; background: linear-gradient(135deg, transparent 48%, #52673f 49% 51%, transparent 52%); }
+.heading-icon, .tile-icon { border-color: #5f754a; background: #202a18; box-shadow: none; }
+.action-tile, .action-tile.blue, .action-tile.green, .action-tile.steel { border-color: #62794c; background: #26321d; box-shadow: none; }
+.action-tile.danger, .abort-tile { border-color: #9b5b50; background: #38211f; box-shadow: none; }
+.status-panel, .logbox, .users-list { border-color: #536941; background: #12190e; box-shadow: none; }
+.status-check, #status, #status.error { box-shadow: none; text-shadow: none; }
+.timer-picker, .timer-picker .timer-duration-label, .timer-adjust, .users-actions > button, .log-actions button { border-color: #62794c; background: #25311c; color: #d8e9c4; box-shadow: none; text-shadow: none; }
+.settings-modal-box, .modal-box { border-color: #637b4d; background: #182014; box-shadow: none; }
+.settings-select select, .language-switch { border-color: #61784c; background: #202a18; color: #d8e9c4; }
+.settings-row, .settings-select, .settings-volume, .settings-action, #settings-modal .modal-actions { border-top-color: #425334; }
+footer { border-top-color: #52673f; background: #171e12; color: #9fb889; }
+.user-role { border-color: #718c59; border-radius: 3px; background: #26321d; color: #d8e9c4; }
+.user-role.admin { border-color: #9abf6d; background: #334328; color: #e2f3ce; }
+.user-role.standard { border-color: #718c59; background: #26321d; color: #d8e9c4; }
+.logbox, .users-list { scrollbar-color: #91ad6e #12190e; }
+.logbox::-webkit-scrollbar-track, .users-list::-webkit-scrollbar-track { background: #12190e; box-shadow: inset 0 0 0 1px #475838; }
+.logbox::-webkit-scrollbar-thumb, .users-list::-webkit-scrollbar-thumb { border-color: #12190e; background: #78985d; box-shadow: none; }
+.logbox::-webkit-scrollbar-thumb:hover, .users-list::-webkit-scrollbar-thumb:hover { background: #9abf72; }
+.logbox::-webkit-scrollbar-button:single-button, .users-list::-webkit-scrollbar-button:single-button { border-left-color: #52673f; background: #26321d; }
+
+/* Menü, Sprachauswahl und Seitenwechsel im selben Terminal-Grün. */
+.page-navigation button:disabled { border-color: #52673f; background: #202a18; color: #7f956b; opacity: 1; }
+.language-flag:hover, .language-flag.active { border-color: #9abf72; background: #405333; box-shadow: none; }
+.settings-action button, .modal-actions button, #settings-close { border-color: #718c59; background: #2b371f; color: #d8e9c4; box-shadow: none; }
+.settings-action button:hover, .modal-actions button:hover, #settings-close:hover { background: #405333; color: #f2ffe5; box-shadow: none; }

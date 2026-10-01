@@ -1,0 +1,18 @@
+window.powerControlLocales ??= {};
+window.powerControlLocales.en = {
+  tagline: "FAST / SAFE / RELIABLE", windowControls: "Window controls", openOptions: "Open options", minimize: "Minimize", close: "Close", timerDuration: "Set timer duration", immediateTitle: "Immediate", immediateSubtitle: "Direct system actions",
+  shutdown: "Shut down", shutdownHint: "Turn off PC", restart: "Restart", restartHint: "Restart PC", logout: "Sign out", logoutHint: "Sign out current user", lock: "Lock", lockHint: "Lock Windows",
+  timerTitle: "Timer", timerSubtitle: "Automatic action after time", minusMinute: "−1 min.", plusMinute: "+1 min.", minusHour: "−1 hr.", plusHour: "+1 hr.", timerShutdown: "Timer shutdown", timerRestart: "Timer restart", abortTimer: "Cancel timer", abortTimerHint: "Stop scheduled action",
+  statusTitle: "Status", statusSubtitle: "System information", ready: "Ready", noAction: "No active action", startWindows: "Start with Windows", startWindowsHint: "Autostart on system startup", usersTitle: "User overview", usersSubtitle: "Local Windows users", usersLoading: "Loading users …", usersEmpty: "No local users found.", userEnabled: "Active", userDisabled: "Disabled",
+  eventLog: "Event log", refresh: "Refresh", clear: "Clear", openFile: "Open file", confirmation: "Confirmation", cancel: "Cancel", run: "Run",
+  options: "Options", optionsSubtitle: "Adjust app settings", clickSounds: "Button sounds", clickSoundsHint: "Sound on clicks", clickSoundStyle: "Click sound", timerSoundStyle: "Timer sound", soundTest: "Test", soundPulse: "Pulse", soundSoft: "Soft", soundBell: "Bell", soundClick: "Click", soundPop: "Pop", soundTap: "Tap", soundSnap: "Snap", soundDigital: "Digital", soundLaser: "Laser", soundChime: "Chime", soundAlarm: "Alarm", soundBeep: "Beep", soundSiren: "Siren", soundDouble: "Double", soundTriple: "Triple", soundGong: "Gong", soundSignal: "Signal", soundUrgent: "Urgent", soundSystemClick: "Classic system click", soundSystemNotify: "System notification", soundSystemAlert: "System alert", soundSystemWarning: "Classic warning", clickVolume: "Click volume", clickVolumeHint: "Volume for button sounds", timerWarning: "Timer warning", timerWarningHint: "Warning tone at 5 seconds", timerVolume: "Timer volume", timerVolumeHint: "Volume for the warning tone",
+  language: "Language", design: "Design", standardTheme: "Standard", classicTheme: "Classic", darkTheme: "Dark", appSize: "App size", compactSize: "Compact · 860 × 620", standardSize: "Standard · 900 × 650", largeSize: "Large · 1050 × 760", xlargeSize: "Extra large · 1200 × 870",
+  windowsPassword: "Windows password", windowsPasswordHint: "Opens protected Windows user account management", currentUser: "Current user", currentUserUnknown: "Current user unavailable", changePassword: "Change password", done: "Done",
+  logEmpty: "No actions logged yet.", hour: "hour", hours: "hours", minute: "minute", minutes: "minutes", remaining: "Remaining", executing: "Action is running …", planned: "scheduled", running: "running", timerCanceled: "Timer canceled.", noTimer: "No timer to cancel.", timerCloseBlocked: "Timer is running – cancel it first.", clearLogConfirm: "Really clear the log?",
+  signInOpened: "Windows sign-in options opened.", signInFailed: "Could not open Windows sign-in options.", autoStartEnabled: "Autostart enabled.", autoStartDisabled: "Autostart disabled.", autoStartFailed: "Could not change autostart."
+};
+
+Object.assign(window.powerControlLocales.en, {
+  soundClassicStart: "Classic: Start", soundClassicSelect: "Classic: Select", soundClassicConfirm: "Classic: Confirm",
+  soundClassicOpen: "Classic: Open", soundClassicClose: "Classic: Close", soundClassicMenu: "Classic: Menu"
+});

@@ -1,0 +1,54 @@
+@import url("style.css");
+
+/* Grünes Neon-Design: gleicher Aufbau wie Neon Pink, mit smaragdgrünem Licht. */
+:root { --cyan: #35ffd0; --text: #edfffb; --muted: #a7e9d8; --green: #40ff9c; --pink: #ff5d82; --gold: #e9ff7d; }
+body { background: radial-gradient(ellipse at 50% -20%, #063d31 0, transparent 44%), radial-gradient(ellipse at 100% 100%, #06261d 0, transparent 46%), #020f0c; }
+body::before { background-image: linear-gradient(#19e6ac22 1px, transparent 1px), linear-gradient(90deg, #19e6ac22 1px, transparent 1px); }
+.app-header { background: linear-gradient(180deg, #062b2299, #020f0c00); border-bottom-color: #35ffd0; }
+.window-button { background: #062c24; color: #e5fff8; }
+.window-button:hover { background: #0b765f; }
+.window-controls { border-color: #259f80; background: #052a21; box-shadow: 0 0 13px #00c98b88; }
+.window-button, .window-button.settings-button { border-color: #32d9ad; background: linear-gradient(135deg, #08745d, #052d24); color: #e5fff8; }
+.window-button.settings-button { border-color: #82ffe0; background: linear-gradient(135deg, #0b886d, #063c31); }
+.window-button.settings-button:hover, .window-button:hover { background: linear-gradient(135deg, #16bd98, #08745d); box-shadow: 0 0 12px #47fdd0; }
+.window-button.close-button { border-color: #ff6a82; background: linear-gradient(135deg, #84283c, #3e1622); }
+.window-button.close-button:hover { background: linear-gradient(135deg, #e84e69, #ad2945); box-shadow: 0 0 14px #ff758c; }
+.circuit { border-top-color: #177d61; background: linear-gradient(90deg, transparent 0 8%, #18dca0 8% 13%, transparent 13% 18%, #16b983 18% 22%, transparent 22% 80%, #18dca0 80% 87%, transparent 87%); box-shadow: 0 -1px 15px #13e6a6; }
+.card { border-color: #35ffd0; background: linear-gradient(145deg, #06352a, #031b15); box-shadow: inset 0 0 35px #00b8793d, 0 0 17px #25efb8, 0 0 40px #00a66c44; }
+.brand-mark { transform: rotate(-10deg) translateY(-3px); filter: hue-rotate(-42deg) saturate(1.45) drop-shadow(0 0 8px #87ffe3) drop-shadow(0 0 20px #00d68f) drop-shadow(-3px 4px 0 #08795488); }
+.action-tile.blue, .action-tile.steel { border-color: #35ffd0; background: linear-gradient(120deg, #052f25, #0a604d); }
+.timer-picker { border-color: #28bb96; background: linear-gradient(135deg, #063b2f, #031a14); box-shadow: inset 0 0 14px #00d69a44, 0 0 9px #00b87855; }
+.timer-picker .timer-duration-label { border: 1px solid #249d80; color: #e5fff8; background: linear-gradient(135deg, #08745d, #06372c); text-shadow: 0 0 7px #8affdf; }
+.timer-adjust, .users-actions > button, .page-navigation button { border-color: #32d9ad; background: linear-gradient(135deg, #08745d, #06352a); color: #e5fff8; }
+.timer-adjust:hover { background: linear-gradient(135deg, #16bd98, #08745d); box-shadow: 0 0 8px #43f8ca; }
+.page-navigation { border-color: #259f80; background: #052a21; box-shadow: 0 0 10px #00c98b77; }
+.page-navigation button:hover:not(:disabled) { background: linear-gradient(135deg, #16bd98, #08745d); color: #fff; box-shadow: 0 0 9px #47fdd0; }
+.page-navigation button:disabled { border-color: #23715f; background: #0a352b; color: #7bbca9; opacity: 1; }
+.page-navigation span { color: #c5ffed; }
+.status-panel, .logbox, .users-list { border-color: #278e75; background: #031b15; }
+.users-card, .users-status-card, .users-log-card { border-color: #35ffd0; background: linear-gradient(145deg, #06352a, #031b15); }
+.user-row { border-bottom-color: #1c6755; }
+footer { border-top-color: #22745f; color: #a9f4df; }
+.modal-box { border-color: #35ffd0; background: linear-gradient(145deg, #042a21, #041814); box-shadow: inset 0 0 28px #00c98b2e, 0 0 28px #23efb8a8; }
+.settings-title p, .settings-row small, .settings-volume small, .settings-action small { color: #b7f4e3; }
+.settings-row, .settings-select, .settings-volume, .settings-action { border-top-color: #216b59; }
+.settings-select { color: #e7fff8; }
+.settings-select select { border-color: #38dcb4; color: #effffb; background: #072c24; }
+.settings-volume input[type="range"], .settings-row input { accent-color: #3df6bf; }
+.settings-volume output { color: #baffeb; }
+.settings-action button, .modal-actions button { border-color: #3ee8bf; background: #063d32; color: #e5fff8; }
+.language-switch { border-color: #259f80; background: #062c24; box-shadow: 0 0 9px #13d99c66; }
+.language-flag:hover, .language-flag.active { border-color: #9dffe5; background: #0b765f; box-shadow: 0 0 9px #28f1bb; }
+#settings-close { border-color: #4affce; background: linear-gradient(135deg, #087a61, #063d32); color: #effffb; box-shadow: 0 0 12px #19e6ac88; }
+#settings-close:hover { background: linear-gradient(135deg, #11ad8c, #07664f); box-shadow: 0 0 16px #46fbd0; }
+#settings-modal .modal-actions { border-top-color: #216b59; }
+
+/* Design-Finish: Listen, Rollen und Scrollbars im selben Smaragdgrün. */
+.user-role { border-color: #279c7c; background: #07382d; color: #c7fff0; }
+.user-role.admin { border-color: #72e9a5; background: #174433; color: #d6ffe3; }
+.user-role.standard { border-color: #32d9ad; background: #063d32; color: #c7fff0; }
+.logbox, .users-list { scrollbar-color: #48f3c8 #031c16; }
+.logbox::-webkit-scrollbar-track, .users-list::-webkit-scrollbar-track { background: #031c16; box-shadow: inset 0 0 0 1px #21705d; }
+.logbox::-webkit-scrollbar-thumb, .users-list::-webkit-scrollbar-thumb { border-color: #031c16; background: linear-gradient(#a4ffe6, #0aa77d); box-shadow: 0 0 6px #00d99d88; }
+.logbox::-webkit-scrollbar-thumb:hover, .users-list::-webkit-scrollbar-thumb:hover { background: linear-gradient(#d0fff2, #1ac99c); }
+.logbox::-webkit-scrollbar-button:single-button, .users-list::-webkit-scrollbar-button:single-button { border-left-color: #27866f; background: #063d32; }
