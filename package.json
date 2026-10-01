@@ -10,6 +10,13 @@
     "package:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-windows.ps1",
     "package:single-exe": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-single-exe.ps1"
   },
-  "dependencies": { "auto-launch": "^5.0.6" },
-  "devDependencies": { "electron": "^37.2.6" }
+  "dependencies": {
+    "auto-launch": "^5.0.6"
+  },
+  "devDependencies": {
+    "electron": "^37.2.6"
+  },
+  "allowScripts": {
+    "electron": true
+  }
 }

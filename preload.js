@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
+
 contextBridge.exposeInMainWorld("powerControl", {
   runAction: (action, delaySeconds) => ipcRenderer.invoke("power:action", action, delaySeconds),
   getLogs: () => ipcRenderer.invoke("log:read"),

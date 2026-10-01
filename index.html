@@ -1,5 +1,52 @@
 <!doctype html>
-<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';"><title>Power Control PRO</title><link id="theme-style" rel="stylesheet" href="css/standard.css"></head>
-<body><header class="app-header"><img class="brand-mark" src="assets/icons/bolt.svg" alt=""><div class="brand"><h1>Power Control <span>PRO</span></h1><p>SCHNELL / SICHER / ZUVERLÄSSIG</p></div><div class="window-controls"><button id="settings-toggle">⚙</button><button id="window-minimize">−</button><button id="window-close">×</button></div></header>
-<main class="grid"><section class="card immediate-card"><h2>Sofort</h2><p>Direkte Systemaktionen</p><div class="action-grid"><button data-action="shutdown">Herunterfahren</button><button data-action="restart">Neustart</button><button data-action="logout">Abmelden</button><button data-action="lock">Sperren</button></div></section><section class="card timer-card"><h2>Timer</h2><output id="timer-duration-label">5 Minuten</output><input id="timer-duration" type="hidden" value="300"><button id="timer-shutdown">Herunterfahren</button><button id="timer-restart">Neustart</button><button id="timer-abort" disabled>Timer abbrechen <span id="countdown"></span></button></section><section class="card status-card"><h2>Status</h2><div id="status">Bereit</div></section><section class="card log-card"><h2>Log PRO</h2><div id="log"></div></section></main>
-<script src="locales/de.js"></script><script src="locales/en.js"></script><script src="renderer.js"></script></body></html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';">
+  <title>Power Control PRO</title>
+  <link id="theme-style" rel="stylesheet" href="css/standard.css">
+</head>
+<body>
+  <div class="circuit circuit-top" aria-hidden="true"></div>
+  <header class="app-header">
+    <img class="brand-mark" src="assets/icons/bolt.svg" alt="" aria-hidden="true">
+    <div class="brand"><h1>Power Control <span>PRO</span></h1><p data-i18n="tagline">SCHNELL / SICHER / ZUVERLÄSSIG</p></div>
+    <div class="window-controls" aria-label="Fenstersteuerung" data-i18n-aria="windowControls">
+      <button id="settings-toggle" class="window-button settings-button" type="button" aria-label="Optionen öffnen" data-i18n-aria="openOptions" title="Optionen" data-i18n-title="options"><img src="assets/icons/settings.svg" alt=""></button>
+      <button id="window-minimize" class="window-button" type="button" aria-label="Minimieren" data-i18n-aria="minimize">−</button>
+      <button id="window-close" class="window-button close-button" type="button" aria-label="Beenden" data-i18n-aria="close">×</button>
+    </div>
+  </header>
+  <main class="grid">
+    <section class="card immediate-card">
+      <div class="card-heading"><img class="heading-icon image-icon" src="assets/icons/bolt.svg" alt=""><div><h2 data-i18n="immediateTitle">Sofort</h2><p data-i18n="immediateSubtitle">Direkte Systemaktionen</p></div></div>
+      <div class="action-grid">
+        <button data-action="shutdown" class="action-tile danger"><img class="tile-icon" src="assets/icons/shutdown.svg" alt=""><span><strong data-i18n="shutdown">Herunterfahren</strong><small data-i18n="shutdownHint">PC ausschalten</small></span></button>
+        <button data-action="restart" class="action-tile blue"><img class="tile-icon" src="assets/icons/restart.svg" alt=""><span><strong data-i18n="restart">Neustart</strong><small data-i18n="restartHint">PC neu starten</small></span></button>
+        <button data-action="logout" class="action-tile green"><img class="tile-icon" src="assets/icons/logout.svg" alt=""><span><strong data-i18n="logout">Abmelden</strong><small data-i18n="logoutHint">Aktuellen Benutzer abmelden</small></span></button>
+        <button data-action="lock" class="action-tile steel"><img class="tile-icon" src="assets/icons/lock.svg" alt=""><span><strong data-i18n="lock">Sperren</strong><small data-i18n="lockHint">Windows sperren</small></span></button>
+      </div>
+    </section>
+    <section class="card timer-card">
+      <div class="timer-header"><div class="card-heading"><img class="heading-icon image-icon" src="assets/icons/timer.svg" alt=""><div><h2 data-i18n="timerTitle">Timer</h2><p data-i18n="timerSubtitle">Automatische Aktion nach Zeit</p></div></div><div class="timer-picker" aria-label="Timer-Dauer einstellen" data-i18n-aria="timerDuration"><output id="timer-duration-label" class="timer-duration-label">5 Minuten</output><input id="timer-duration" type="hidden" value="300"><button class="timer-adjust" type="button" data-timer-adjust="-60" data-i18n="minusMinute">−1 Min.</button><button class="timer-adjust" type="button" data-timer-adjust="60" data-i18n="plusMinute">+1 Min.</button><button class="timer-adjust" type="button" data-timer-adjust="-3600" data-i18n="minusHour">−1 Std.</button><button class="timer-adjust" type="button" data-timer-adjust="3600" data-i18n="plusHour">+1 Std.</button></div></div>
+      <div class="timer-actions"><button id="timer-shutdown" class="action-tile danger"><img class="tile-icon" src="assets/icons/shutdown.svg" alt=""><span><strong data-i18n="shutdown">Herunterfahren</strong><small data-i18n="timerShutdown">Timer Shutdown</small></span></button><button id="timer-restart" class="action-tile blue"><img class="tile-icon" src="assets/icons/restart.svg" alt=""><span><strong data-i18n="restart">Neustart</strong><small data-i18n="timerRestart">Timer Restart</small></span></button></div>
+      <button id="timer-abort" class="abort-tile" disabled><img src="assets/icons/abort.svg" alt=""><span><strong data-i18n="abortTimer">Timer abbrechen</strong><small data-i18n="abortTimerHint">Geplante Aktion stoppen</small></span></button><output id="countdown" aria-live="polite"></output>
+    </section>
+    <section class="card status-card">
+      <div class="card-heading"><img class="heading-icon image-icon" src="assets/icons/status.svg" alt=""><div><h2 data-i18n="statusTitle">Status</h2><p data-i18n="statusSubtitle">System-Informationen</p></div></div>
+      <div class="status-panel"><div class="status-main"><div class="status-check">✓</div><div><div id="status" role="status" aria-live="polite" data-i18n="ready">Bereit</div><p data-i18n="noAction">Keine Aktion aktiv</p></div></div><div class="status-divider"></div><label class="autostart-row"><span class="windows">⊞</span><input id="autostart" type="checkbox"><span><strong data-i18n="startWindows">Mit Windows starten</strong><small data-i18n="startWindowsHint">Autostart beim Systemstart</small></span><i class="switch" aria-hidden="true"></i></label></div>
+    </section>
+    <section class="card log-card">
+      <div class="log-heading"><div class="card-heading"><img class="heading-icon image-icon" src="assets/icons/log.svg" alt=""><div><h2>Log PRO</h2><p data-i18n="eventLog">Ereignisprotokoll</p></div></div><div class="log-actions"><button id="refresh-log" type="button">⟳ <span data-i18n="refresh">Aktualisieren</span></button><button id="clear-log" type="button" class="delete">♜ <span data-i18n="clear">Löschen</span></button><button id="open-log" type="button">▰ <span data-i18n="openFile">Datei öffnen</span></button></div></div>
+      <div id="log" class="logbox" aria-live="polite"></div>
+    </section>
+  </main>
+  <footer>POWER CONTROL PRO <img class="footer-bolt" src="assets/icons/bolt.svg" alt="" aria-hidden="true"> v1.0.1</footer>
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-box"><h2 id="modal-title" data-i18n="confirmation">Bestätigung</h2><p id="modal-text"></p><div class="modal-actions"><button id="modal-cancel" class="secondary" type="button" data-i18n="cancel">Abbrechen</button><button id="modal-ok" class="danger" type="button" data-i18n="run">Ausführen</button></div></div></div>
+  <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div class="modal-box settings-modal-box"><div class="settings-title"><img src="assets/icons/settings.svg" alt=""><div><h2 id="settings-title" data-i18n="options">Optionen</h2><p data-i18n="optionsSubtitle">App-Einstellungen anpassen</p></div><div class="language-switch" role="group" aria-label="Sprache wählen" data-i18n-aria="language"><button type="button" class="language-flag" data-language="de" aria-label="Deutsch">🇩🇪</button><button type="button" class="language-flag" data-language="en" aria-label="English">🇬🇧</button></div></div><label class="settings-row"><span><strong data-i18n="timerWarning">Timer-Warnung</strong><small data-i18n="timerWarningHint">Warnton bei 5 Sekunden</small></span><input id="settings-warning-sound" type="checkbox"></label><label class="settings-volume"><span><strong data-i18n="timerVolume">Timer-Lautstärke</strong><small data-i18n="timerVolumeHint">Lautstärke des Warntons</small></span><div><input id="settings-warning-volume" type="range" min="0" max="100" step="5" aria-label="Timer-Lautstärke" data-i18n-aria="timerVolume"><output id="settings-warning-volume-value">80%</output></div></label><label class="settings-select"><span data-i18n="design">Design</span><select id="settings-theme"><option value="standard" data-i18n="standardTheme">Standard</option><option value="neon">Neon</option><option value="classic" data-i18n="classicTheme">Klassisch</option></select></label><label class="settings-select"><span data-i18n="appSize">App-Größe</span><select id="settings-window-size"><option value="compact" data-i18n="compactSize">Klein · 860 × 620</option><option value="standard" data-i18n="standardSize">Standard · 900 × 650</option><option value="large" data-i18n="largeSize">Groß · 1050 × 760</option><option value="xlarge" data-i18n="xlargeSize">Sehr groß · 1200 × 870</option></select></label><div class="modal-actions"><button id="settings-close" class="secondary" type="button" data-i18n="done">Fertig</button></div></div></div>
+  <script src="locales/de.js"></script>
+  <script src="locales/en.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

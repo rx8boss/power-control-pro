@@ -1,30 +1,63 @@
 # Power Control PRO
 
-Eine Windows-Desktop-App auf Electron-Basis für Schnellaktionen, zeitgesteuerte Energieaktionen, Systemstatus und Ereignisprotokolle.
+![Power Control PRO – Originaloberfläche](docs/preview.png)
 
-![Power Control PRO Vorschau](docs/preview.svg)
+Eine portable Windows-App für häufige Systemaktionen: Herunterfahren, Neustart,
+Abmelden und Sperren. Zusätzlich bietet sie einen einstellbaren Timer,
+Systemstatus, Aktionsprotokoll, Benutzerübersicht sowie auswählbare Designs
+und Sprachen.
 
 ## Funktionen
 
-- Herunterfahren, Neustart, Abmelden und Windows sperren
-- Timer für Herunterfahren oder Neustart, inklusive Abbruch
-- System-Log und Autostart
-- Benutzerübersicht mit aktuellem Konto
-- Deutsch und Englisch
-- Mehrere Designs: Standard, Neon, Classic, Dark, Retro, Linux Mint und Graphit
-- Anpassbare Warn- und Klick-Sounds
+- Sofortaktionen: Herunterfahren, Neustart, Abmelden und Windows sperren
+- Timer für Herunterfahren oder Neustart, inklusive Abbruchfunktion
+- Status- und Ereignisprotokoll
+- Übersicht lokaler Windows-Benutzer
+- Deutsche und englische Oberfläche
+- Mehrere Designs, darunter Standard, Neon, Classic, Dark, Retro und Linux Mint
+- Frameless Fenster mit eigenen Minimieren-, Schließen- und Einstellungs-Schaltflächen
 
-## Starten
+## Starten ohne Installation
+
+Die Datei `Power-Control-PRO.exe` ist eine portable Einzeldatei. Sie enthält
+die benötigte Laufzeit und kann unter Windows per Doppelklick gestartet werden.
+Beim ersten Start kann Windows SmartScreen nachfragen, weil die Datei nicht
+digital signiert ist.
+
+## Für Entwickler
 
 ```powershell
 npm install
 npm start
 ```
 
-## Verpacken für Windows
+Prüfen des JavaScript-Quellcodes:
+
+```powershell
+node --check main.js
+node --check preload.js
+node --check renderer.js
+```
+
+Portable Windows-Version erzeugen:
 
 ```powershell
 npm run package:win
+npm run package:single-exe
 ```
 
-> Der Repository-Quellstand enthält bewusst keine native C++-Variante, keine Build-Ausgaben, keine EXE-Dateien und keine `node_modules`.
+Die Einzeldatei wird anschließend unter `outputs/Power-Control-PRO.exe` erstellt.
+
+## Projektstruktur
+
+- `assets/` – App-Icon, Oberflächen-Icons und Sounds
+- `css/` – Designvarianten
+- `locales/` – deutsche und englische Texte
+- `scripts/` – Prüf- und Verpackungsskripte
+- `docs/preview.png` – echte Vorschau der App
+
+## Hinweis
+
+Systemaktionen wie Herunterfahren oder Neustart werden ausschließlich über
+fest definierte Windows-Befehle ausgelöst. Ein aktiver Timer sperrt
+widersprüchliche Sofortaktionen, bis er abgebrochen oder ausgeführt wurde.
