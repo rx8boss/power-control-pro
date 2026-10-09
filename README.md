@@ -7,6 +7,8 @@ Abmelden und Sperren. Zusätzlich bietet sie einen einstellbaren Timer,
 Systemstatus, Aktionsprotokoll, Benutzerübersicht sowie auswählbare Designs
 und Sprachen.
 
+Dieses Projekt wurde mit Unterstützung künstlicher Intelligenz (KI), unter anderem OpenAI Codex, erstellt und weiterentwickelt.
+
 ## Funktionen
 
 - Sofortaktionen: Herunterfahren, Neustart, Abmelden und Windows sperren
