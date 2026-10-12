@@ -1,0 +1,324 @@
+<Window x:Class="PowerControlProWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Power Control PRO" Width="900" Height="650" MinWidth="860" MinHeight="620" Icon="Assets/app-icon.ico" ShowInTaskbar="True" UseLayoutRounding="True" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="HighQuality" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType" TextOptions.TextHintingMode="Fixed"
+        WindowStyle="None" ResizeMode="NoResize" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}"
+        Closing="Window_Closing">
+  <Window.Resources>
+    <SolidColorBrush x:Key="AppBrush" Color="#061526"/>
+    <SolidColorBrush x:Key="HeaderBrush" Color="#1F405B"/>
+    <SolidColorBrush x:Key="FooterBrush" Color="#102C43"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#0A2138"/>
+    <LinearGradientBrush x:Key="CardSurfaceBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#153C5A" Offset="0"/><GradientStop Color="#071B31" Offset="1"/></LinearGradientBrush>
+    <LinearGradientBrush x:Key="ButtonSheen" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#22FFFFFF" Offset="0"/><GradientStop Color="#05FFFFFF" Offset="0.55"/><GradientStop Color="#00000000" Offset="1"/></LinearGradientBrush>
+    <SolidColorBrush x:Key="InputBrush" Color="#061526"/>
+    <SolidColorBrush x:Key="TextBrush" Color="#F4FAFF"/>
+    <SolidColorBrush x:Key="HeaderTextBrush" Color="#F4FAFF"/>
+    <SolidColorBrush x:Key="HeaderSubtleBrush" Color="#A7DFFF"/>
+    <SolidColorBrush x:Key="FooterTextBrush" Color="#A7DFFF"/>
+    <SolidColorBrush x:Key="ActionTextBrush" Color="#F8FBFF"/>
+    <SolidColorBrush x:Key="SubtleTextBrush" Color="#A7DFFF"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="#00CFFF"/>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#327DA6"/>
+    <SolidColorBrush x:Key="ButtonBrush" Color="#174267"/>
+    <SolidColorBrush x:Key="HoverBrush" Color="#245C87"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#782439"/>
+    <SolidColorBrush x:Key="DangerBorderBrush" Color="#FF6388"/>
+    <SolidColorBrush x:Key="AbortRedBrush" Color="#6A1F32"/>
+    <SolidColorBrush x:Key="AbortRedBorderBrush" Color="#FF5A74"/>
+    <SolidColorBrush x:Key="TimerAbortSurfaceBrush" Color="#302F3B"/>
+    <SolidColorBrush x:Key="TimerAbortOutlineBrush" Color="#A88A4D"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="#086665"/>
+    <SolidColorBrush x:Key="LockBrush" Color="#1D3975"/>
+    <SolidColorBrush x:Key="CancelBrush" Color="#3B303A"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#B29342"/>
+    <SolidColorBrush x:Key="ReadyBrush" Color="#37D4A2"/>
+    <SolidColorBrush x:Key="SelectionBrush" Color="#245C87"/>
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#327DA6"/>
+    <DropShadowEffect x:Key="NeonGlow" Color="#00CFFF" ShadowDepth="0" BlurRadius="18" Opacity="0"/>
+    <DropShadowEffect x:Key="NeonIconGlow" Color="#00CFFF" ShadowDepth="0" BlurRadius="7" Opacity="0"/>
+    <Style TargetType="Button">
+      <Setter Property="Background" Value="{DynamicResource ButtonBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="10,6"/><Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="{x:Type Button}"><Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.88"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.72"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+      <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.62"/></Trigger></Style.Triggers>
+    </Style>
+    <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="{DynamicResource CardSurfaceBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/><Setter Property="BorderThickness" Value="2"/><Setter Property="CornerRadius" Value="13"/><Setter Property="Padding" Value="14"/><Setter Property="Margin" Value="5"/></Style>
+    <Style x:Key="CardGlow" TargetType="Border"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter Property="BorderThickness" Value="2"/><Setter Property="CornerRadius" Value="13"/><Setter Property="Margin" Value="5"/><Setter Property="Effect" Value="{DynamicResource NeonGlow}"/><Setter Property="IsHitTestVisible" Value="False"/></Style>
+    <Style x:Key="CardCorner" TargetType="Path"><Setter Property="Data" Value="M 0 0 L 66 0 M 0 0 L 66 66"/><Setter Property="Stroke" Value="{DynamicResource InputBorderBrush}"/><Setter Property="StrokeThickness" Value="1"/><Setter Property="Opacity" Value="0.55"/><Setter Property="Width" Value="66"/><Setter Property="Height" Value="66"/><Setter Property="Stretch" Value="None"/><Setter Property="HorizontalAlignment" Value="Right"/><Setter Property="VerticalAlignment" Value="Top"/><Setter Property="Margin" Value="0,18,6,0"/><Setter Property="IsHitTestVisible" Value="False"/></Style>
+    <Style x:Key="Heading" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/></Style>
+    <Style x:Key="Sub" TargetType="TextBlock"><Setter Property="FontSize" Value="12"/><Setter Property="Foreground" Value="{DynamicResource SubtleTextBrush}"/><Setter Property="Margin" Value="35,2,0,0"/></Style>
+    <Style x:Key="HeaderButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="Width" Value="42"/><Setter Property="Height" Value="36"/><Setter Property="Padding" Value="0"/><Setter Property="FontSize" Value="18"/></Style>
+    <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource HeaderButton}">
+      <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#A51D36"/><Setter Property="BorderBrush" Value="#FF6388"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Border x:Name="CloseBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="8">
+          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsMouseOver" Value="True">
+            <Setter TargetName="CloseBorder" Property="Background" Value="#E92749"/>
+            <Setter TargetName="CloseBorder" Property="BorderBrush" Value="#FFC0CC"/>
+            <Setter TargetName="CloseBorder" Property="Effect"><Setter.Value><DropShadowEffect Color="#FF2448" ShadowDepth="0" BlurRadius="19" Opacity="0.95"/></Setter.Value></Setter>
+          </Trigger>
+          <Trigger Property="IsPressed" Value="True"><Setter TargetName="CloseBorder" Property="Background" Value="#8F132B"/></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter TargetName="CloseBorder" Property="Opacity" Value="0.5"/></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="OptionsCloseButton" TargetType="Button" BasedOn="{StaticResource CloseButtonStyle}"><Setter Property="Width" Value="34"/><Setter Property="Height" Value="30"/></Style>
+    <Style x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="MinHeight" Value="67"/><Setter Property="Margin" Value="3"/><Setter Property="Padding" Value="11,7"/>
+      <Setter Property="BorderThickness" Value="1.5"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Foreground" Value="{DynamicResource ActionTextBrush}"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Border x:Name="ActionBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" SnapsToDevicePixels="True">
+          <Grid><Border Background="{StaticResource ButtonSheen}" CornerRadius="7" IsHitTestVisible="False"/>
+            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+          </Grid>
+        </Border>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ActionBorder" Property="BorderThickness" Value="2"/></Trigger>
+          <Trigger Property="IsPressed" Value="True"><Setter TargetName="ActionBorder" Property="Opacity" Value="0.82"/></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ActionBorder" Property="Opacity" Value="0.65"/></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="TimerActionButton" TargetType="Button" BasedOn="{StaticResource ActionButton}"><Setter Property="Padding" Value="6,5"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+    <Style x:Key="TimerAbortButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+      <Setter Property="MinHeight" Value="48"/><Setter Property="Padding" Value="8,5"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Background" Value="{StaticResource TimerAbortSurfaceBrush}"/><Setter Property="BorderBrush" Value="{StaticResource TimerAbortOutlineBrush}"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Border x:Name="AbortBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+        <ControlTemplate.Triggers>
+          <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsMouseOver" Value="True"/><Condition Property="IsEnabled" Value="True"/></MultiTrigger.Conditions><Setter TargetName="AbortBorder" Property="BorderBrush" Value="#D7B471"/></MultiTrigger>
+          <Trigger Property="IsPressed" Value="True"><Setter TargetName="AbortBorder" Property="Opacity" Value="0.85"/></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter TargetName="AbortBorder" Property="Opacity" Value="0.85"/></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}"><Setter Property="FontSize" Value="11"/><Setter Property="Padding" Value="8,4"/></Style>
+    <Style x:Key="LogActionButton" TargetType="Button" BasedOn="{StaticResource SmallButton}"><Setter Property="Height" Value="35"/><Setter Property="Padding" Value="6,3"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/></Style>
+    <Style x:Key="TimerStepButton" TargetType="Button" BasedOn="{StaticResource SmallButton}"><Setter Property="FontSize" Value="11"/><Setter Property="Padding" Value="2,4"/><Setter Property="MinWidth" Value="0"/><Setter Property="Background" Value="{DynamicResource InputBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/></Style>
+    <Style x:Key="RepairProgressBar" TargetType="ProgressBar">
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ProgressBar">
+        <Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="5" SnapsToDevicePixels="True">
+          <Grid ClipToBounds="True">
+            <Border x:Name="PART_Track" Background="Transparent"/>
+            <Border x:Name="PART_Indicator" Background="{DynamicResource AccentBrush}" CornerRadius="4" HorizontalAlignment="Left"/>
+          </Grid>
+        </Border>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="ComboBox"><Setter Property="Background" Value="{DynamicResource InputBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="9,5"/><Setter Property="Height" Value="30"/><Setter Property="MinWidth" Value="0"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="{x:Type ComboBox}"><Grid><ToggleButton x:Name="ToggleButton" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Focusable="False" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"><ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7"><Grid><ContentPresenter Margin="9,0,30,0" HorizontalAlignment="Left" VerticalAlignment="Center" Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}" ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType=ComboBox}}" TextElement.Foreground="{DynamicResource TextBrush}"/><Path Data="M 0 0 L 8 0 L 4 5 Z" Fill="{DynamicResource AccentBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,11,0"/></Grid></Border></ControlTemplate></ToggleButton.Template></ToggleButton><Popup x:Name="PART_Popup" AllowsTransparency="True" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" PopupAnimation="Slide"><Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="7" Margin="0,3,0,0" MinWidth="{Binding ActualWidth, ElementName=ToggleButton}"><ScrollViewer MaxHeight="190" CanContentScroll="True"><ItemsPresenter/></ScrollViewer></Border></Popup></Grid></ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="ComboBoxItem"><Setter Property="Background" Value="{DynamicResource CardBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Padding" Value="8,5"/><Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger></Style.Triggers></Style>
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox">
+        <Grid SnapsToDevicePixels="True"><Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <Border x:Name="CheckBorder" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="3"/>
+          <Path x:Name="CheckMark" Data="M 3 8 L 7 12 L 14 4" Stroke="{DynamicResource InputBrush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="1,0,0,0"/>
+          <ContentPresenter Grid.Column="1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
+        </Grid>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsChecked" Value="True"><Setter TargetName="CheckBorder" Property="Background" Value="{DynamicResource AccentBrush}"/><Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/></Trigger>
+          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="CheckBorder" Property="BorderBrush" Value="{DynamicResource TextBrush}"/></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="Slider">
+      <Setter Property="Height" Value="22"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Slider">
+        <Grid SnapsToDevicePixels="True">
+          <Border Height="7" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="4" VerticalAlignment="Center"/>
+          <Track x:Name="PART_Track" Margin="7,0" VerticalAlignment="Center" Height="18" IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+            <Track.DecreaseRepeatButton><RepeatButton Command="{x:Static Slider.DecreaseLarge}" Focusable="False" Opacity="0"/></Track.DecreaseRepeatButton>
+            <Track.Thumb><Thumb Width="17" Height="17"><Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource TextBrush}" BorderThickness="1" CornerRadius="9"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+            <Track.IncreaseRepeatButton><RepeatButton Command="{x:Static Slider.IncreaseLarge}" Focusable="False" Opacity="0"/></Track.IncreaseRepeatButton>
+          </Track>
+        </Grid>
+        <ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger></ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="GridViewColumnHeader"><Setter Property="Background" Value="{DynamicResource ButtonBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/><Setter Property="Padding" Value="7,4"/></Style>
+    <Style TargetType="ListViewItem"><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Background" Value="{DynamicResource InputBrush}"/><Setter Property="Padding" Value="4,4"/><Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource HoverBrush}"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectionBrush}"/></Trigger></Style.Triggers></Style>
+    <Style TargetType="ListBoxItem"><Setter Property="Foreground" Value="{DynamicResource SubtleTextBrush}"/><Setter Property="Padding" Value="2"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource SelectionBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/></Trigger></Style.Triggers></Style>
+    <Style x:Key="ScrollArrow" TargetType="RepeatButton"><Setter Property="Background" Value="{DynamicResource ButtonBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Focusable" Value="False"/><Setter Property="Height" Value="15"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="{TemplateBinding Background}" CornerRadius="5" Margin="1"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="ScrollBar"><Setter Property="Width" Value="14"/><Setter Property="Background" Value="{DynamicResource InputBrush}"/><Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/><Setter Property="SnapsToDevicePixels" Value="True"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar"><Grid Background="{TemplateBinding Background}"><Grid.RowDefinitions><RowDefinition Height="16"/><RowDefinition Height="*"/><RowDefinition Height="16"/></Grid.RowDefinitions><RepeatButton Grid.Row="0" Content="▲" FontSize="7" Command="{x:Static ScrollBar.LineUpCommand}" Style="{StaticResource ScrollArrow}"/><Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="True" Orientation="Vertical"><Track.DecreaseRepeatButton><RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Opacity="0"/></Track.DecreaseRepeatButton><Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="2"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb><Track.IncreaseRepeatButton><RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Opacity="0"/></Track.IncreaseRepeatButton></Track><RepeatButton Grid.Row="2" Content="▼" FontSize="7" Command="{x:Static ScrollBar.LineDownCommand}" Style="{StaticResource ScrollArrow}"/></Grid></ControlTemplate></Setter.Value></Setter></Style>
+  </Window.Resources>
+  <Grid x:Name="Root" Background="{DynamicResource AppBrush}">
+    <Grid.RowDefinitions><RowDefinition Height="90"/><RowDefinition Height="*"/><RowDefinition Height="24"/><RowDefinition Height="32"/></Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="0,0,0,2" TextElement.Foreground="{DynamicResource HeaderTextBrush}" MouseLeftButtonDown="DragWindow">
+      <Grid x:Name="HeaderLayout" Margin="12,8"><Grid.ColumnDefinitions><ColumnDefinition Width="145"/><ColumnDefinition Width="*"/><ColumnDefinition Width="155"/></Grid.ColumnDefinitions>
+        <Border x:Name="PageNavigation" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="3">
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="PagePrevious" Content="‹" IsEnabled="False" Click="SwitchPage" Style="{StaticResource HeaderButton}" Width="28" Height="28" FontSize="18"/>
+            <TextBlock x:Name="PageIndicator" Text="1 / 3" Width="36" TextAlignment="Center" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource HeaderTextBrush}"/>
+            <Button x:Name="PageNext" Content="›" Click="SwitchPage" Style="{StaticResource HeaderButton}" Width="28" Height="28" FontSize="18"/>
+          </StackPanel>
+        </Border>
+        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Image x:Name="HeaderIcon" Source="Assets/icons/neon/bolt.png" Width="48" Height="48" Margin="0,0,11,0"/><TextBlock x:Name="TitleText" Text="Power Control" FontSize="29" FontWeight="Bold" VerticalAlignment="Center"/><TextBlock x:Name="TitleProText" Text=" PRO" FontSize="29" FontWeight="Bold" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}"/></StackPanel>
+          <TextBlock x:Name="MottoText" Text="SCHNELL  /  SICHER  /  ZUVERLÄSSIG" HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource HeaderSubtleBrush}" Margin="0,2,0,0"/>
+        </StackPanel>
+        <Border Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="3"><StackPanel Orientation="Horizontal">
+          <Button Style="{StaticResource HeaderButton}" Click="ToggleSettings" Margin="0,0,5,0"><Image Source="Assets/icons/neon/settings.png" Width="18" Height="18"/></Button>
+          <Button Style="{StaticResource HeaderButton}" Content="−" Click="Minimize" Margin="0,0,5,0"/>
+          <Button Style="{StaticResource CloseButtonStyle}" Content="×" FontSize="20" Click="CloseApp"/>
+        </StackPanel></Border>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" Margin="8,4,8,4">
+      <Grid x:Name="HomePage">
+        <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="0.94*"/><ColumnDefinition Width="1.06*"/></Grid.ColumnDefinitions>
+        <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardGlow}"/>
+        <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}"><StackPanel>
+          <StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/bolt.png" Width="34" Height="34" Margin="0,0,10,0"/><TextBlock x:Name="ImmediateTitle" Text="Sofort" Style="{StaticResource Heading}" VerticalAlignment="Center"/></StackPanel>
+          <TextBlock x:Name="ImmediateSub" Text="Direkte Systemaktionen" Style="{StaticResource Sub}"/>
+          <UniformGrid Columns="2" Margin="0,10,0,0">
+            <Button x:Name="ShutdownButton" Style="{StaticResource ActionButton}" Background="{DynamicResource DangerBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" Click="ShutdownNow"><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/shutdown.png" Width="40" Height="40" Margin="2,0,10,0"/><StackPanel><TextBlock x:Name="ShutdownLabel" Text="Herunterfahren" FontSize="15" FontWeight="Bold"/><TextBlock x:Name="ShutdownSub" Text="PC ausschalten" FontSize="10"/></StackPanel></StackPanel></Button>
+            <Button x:Name="RestartButton" Style="{StaticResource ActionButton}" Click="RestartNow"><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/restart.png" Width="40" Height="40" Margin="2,0,10,0"/><StackPanel><TextBlock x:Name="RestartLabel" Text="Neustart" FontSize="15" FontWeight="Bold"/><TextBlock x:Name="RestartSub" Text="PC neu starten" FontSize="10"/></StackPanel></StackPanel></Button>
+            <Button x:Name="LogoutButton" Style="{StaticResource ActionButton}" Background="{DynamicResource SuccessBrush}" BorderBrush="{DynamicResource AccentBrush}" Click="LogoutNow"><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/logout.png" Width="40" Height="40" Margin="2,0,10,0"/><StackPanel><TextBlock x:Name="LogoutLabel" Text="Abmelden" FontSize="15" FontWeight="Bold"/><TextBlock x:Name="LogoutSub" Text="Aktuellen Benutzer abmelden" FontSize="10" Width="118" TextWrapping="Wrap"/></StackPanel></StackPanel></Button>
+            <Button x:Name="LockButton" Style="{StaticResource ActionButton}" Background="{DynamicResource LockBrush}" BorderBrush="{DynamicResource AccentBrush}" Click="LockNow"><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/lock.png" Width="40" Height="40" Margin="2,0,10,0"/><StackPanel><TextBlock x:Name="LockLabel" Text="Sperren" FontSize="15" FontWeight="Bold"/><TextBlock x:Name="LockSub" Text="Windows sperren" FontSize="10"/></StackPanel></StackPanel></Button>
+          </UniformGrid>
+        </StackPanel></Border>
+        <Path Grid.Row="0" Grid.Column="0" Style="{StaticResource CardCorner}"/>
+
+        <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardGlow}"/>
+        <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}"><StackPanel>
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="225"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/timer.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock x:Name="TimerTitle" Text="Timer" Style="{StaticResource Heading}"/><TextBlock x:Name="TimerSub" Text="Automatische Aktion nach Zeit" Style="{StaticResource Sub}" Margin="0" Width="124" TextWrapping="Wrap"/></StackPanel></StackPanel>
+            <Border Grid.Column="1" Background="{DynamicResource ButtonBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="5"><StackPanel><TextBlock x:Name="TimerValue" Text="5 Minuten" HorizontalAlignment="Center" FontWeight="Bold"/><UniformGrid Columns="4" Margin="0,4,0,0"><Button x:Name="TimerMinusMin" Content="−1 Min" Click="TimerMinusMinute" Style="{StaticResource TimerStepButton}" Margin="1"/><Button x:Name="TimerPlusMin" Content="+1 Min" Click="TimerPlusMinute" Style="{StaticResource TimerStepButton}" Margin="1"/><Button x:Name="TimerMinusHourButton" Content="−1 Std" Click="TimerMinusHour" Style="{StaticResource TimerStepButton}" Margin="1"/><Button x:Name="TimerPlusHourButton" Content="+1 Std" Click="TimerPlusHour" Style="{StaticResource TimerStepButton}" Margin="1"/></UniformGrid></StackPanel></Border>
+          </Grid>
+          <Grid x:Name="TimerActionRow" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="1*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+            <Button x:Name="TimerShutdown" Grid.Column="0" Style="{StaticResource TimerActionButton}" Background="{DynamicResource DangerBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" Click="StartTimerShutdown"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Image Source="Assets/icons/neon/shutdown.png" Width="30" Height="30" VerticalAlignment="Center"/><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="TimerShutdownLabel" Text="Herunterfahren" FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="TimerShutdownSub" Text="Timer Herunterfahren" FontSize="10" TextTrimming="CharacterEllipsis"/></StackPanel></Grid></Button>
+            <Button x:Name="TimerLock" Grid.Column="1" Style="{StaticResource TimerActionButton}" Background="{DynamicResource LockBrush}" BorderBrush="{DynamicResource AccentBrush}" Click="StartTimerLock"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Image Source="Assets/icons/neon/lock.png" Width="30" Height="30" VerticalAlignment="Center"/><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="TimerLockLabel" Text="Sperren" FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="TimerLockSub" Text="Timer Sperren" FontSize="10" TextTrimming="CharacterEllipsis"/></StackPanel></Grid></Button>
+            <Button x:Name="TimerRestart" Grid.Column="2" Style="{StaticResource TimerActionButton}" Click="StartTimerRestart"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Image Source="Assets/icons/neon/restart.png" Width="30" Height="30" VerticalAlignment="Center"/><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="TimerRestartLabel" Text="Neustart" FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="TimerRestartSub" Text="Timer Neustart" FontSize="10" TextTrimming="CharacterEllipsis"/></StackPanel></Grid></Button>
+          </Grid>
+          <Button x:Name="AbortTimerButton" Style="{StaticResource TimerAbortButton}" IsEnabled="False" Click="AbortTimer" Margin="3,8,3,3"><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Image x:Name="AbortTimerIcon" Source="Assets/icons/classic/abort.png" Width="27" Height="27" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,0,10,0"/><StackPanel VerticalAlignment="Center"><TextBlock x:Name="AbortLabel" Text="Timer abbrechen" FontSize="15" FontWeight="Bold" Foreground="White"/><TextBlock x:Name="AbortHint" Text="Geplante Aktion stoppen" FontSize="10" Foreground="White" Opacity="0.82"/><TextBlock x:Name="AbortCountdown" FontSize="10" Foreground="White" Opacity="0.82" Visibility="Collapsed"/></StackPanel></StackPanel></Button>
+        </StackPanel></Border>
+
+        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardGlow}"/>
+        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource Card}"><StackPanel><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/status.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock x:Name="StatusTitle" Text="Status" Style="{StaticResource Heading}"/><TextBlock x:Name="StatusSub" Text="System-Informationen" Style="{StaticResource Sub}" Margin="0"/></StackPanel></StackPanel><Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,12,0,0"><Grid Height="72"><Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="StatusBadge" Width="54" Height="54" BorderBrush="{DynamicResource ReadyBrush}" BorderThickness="4" CornerRadius="27" VerticalAlignment="Center"><TextBlock x:Name="StatusSymbol" Text="✓" FontSize="36" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-5,0,0"/></Border><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="StatusText" Text="Bereit" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ReadyBrush}"/><TextBlock x:Name="StatusDetail" Text="Keine Aktion aktiv" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,3,0,0"/></StackPanel></Grid></Border></StackPanel></Border>
+        <Path Grid.Row="1" Grid.Column="0" Style="{StaticResource CardCorner}"/>
+        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardGlow}"/>
+        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}"><StackPanel>
+          <StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/log.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock Text="Log PRO" Style="{StaticResource Heading}"/><TextBlock x:Name="LogSub" Text="Ereignisprotokoll" Style="{StaticResource Sub}" Margin="0" FontSize="11"/></StackPanel></StackPanel>
+          <UniformGrid Columns="3" Margin="0,7,0,0">
+            <Button x:Name="RefreshLogButton" Click="RefreshLog" Style="{StaticResource LogActionButton}" Margin="2"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><TextBlock Text="⟳" FontSize="17" FontWeight="Bold" Margin="0,-2,5,0"/><TextBlock x:Name="RefreshLogLabel" Text="Aktualisieren" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button>
+            <Button x:Name="ClearLogButton" Background="{DynamicResource DangerBrush}" BorderBrush="{DynamicResource DangerBorderBrush}" Click="ClearLog" Style="{StaticResource LogActionButton}" Margin="2"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><TextBlock Text="⌛" FontSize="13" Foreground="{DynamicResource DangerBorderBrush}" Margin="0,0,5,0"/><TextBlock x:Name="ClearLogLabel" Text="Löschen" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button>
+            <Button x:Name="OpenLogButton" Click="OpenLog" Style="{StaticResource LogActionButton}" Margin="2"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Path Data="M 0,3 L 5,3 L 7,5 L 15,5 L 15,12 L 0,12 Z" Fill="{DynamicResource TextBrush}" Width="15" Height="15" Stretch="Uniform" Margin="0,0,5,0"/><TextBlock x:Name="OpenLogLabel" Text="Datei öffnen" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button>
+          </UniformGrid>
+          <ListBox x:Name="LogBox" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,5,0,0" FontFamily="Consolas" FontSize="11" Height="120" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"/></DataTemplate></ListBox.ItemTemplate></ListBox>
+        </StackPanel></Border>
+        <Path Grid.Row="1" Grid.Column="1" Style="{StaticResource CardCorner}"/>
+      </Grid>
+
+      <Grid x:Name="UserPage" Visibility="Collapsed"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Border Style="{StaticResource CardGlow}"/>
+        <Border Style="{StaticResource Card}"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Grid.Column="0" Orientation="Horizontal"><Image Source="Assets/icons/neon/log.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock x:Name="UsersTitle" Text="Benutzerübersicht" Style="{StaticResource Heading}"/><TextBlock x:Name="UsersSub" Text="Lokale Windows-Benutzer" Style="{StaticResource Sub}" Margin="0"/></StackPanel></StackPanel><StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"><Button x:Name="ResetPasswordButton" Content="Kennwort zurücksetzen" Click="ResetPassword" Style="{StaticResource SmallButton}" Width="150" Height="28" Margin="2" IsEnabled="False"/><Button x:Name="RefreshUsersButton" Content="↻ Aktualisieren" Click="LoadUsers" Style="{StaticResource SmallButton}" Width="105" Height="28" Margin="2"/></StackPanel></Grid>
+          <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,4"><TextBlock x:Name="CurrentUserText" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/><Border Background="{DynamicResource ButtonBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="5" Padding="6,2" Margin="8,0,0,0"><TextBlock x:Name="CurrentUserRole" Text="Standardbenutzer" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/></Border></StackPanel>
+          <ListView x:Name="UserList" Grid.Row="2" MinHeight="0" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Foreground="{DynamicResource TextBrush}" SelectionChanged="UserSelectionChanged" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListView.View><GridView><GridViewColumn x:Name="UserNameColumn" Header="Benutzer" DisplayMemberBinding="{Binding Name}" Width="180"/><GridViewColumn x:Name="UserRoleColumn" Header="Typ" DisplayMemberBinding="{Binding Role}" Width="160"/><GridViewColumn x:Name="UserDescriptionColumn" Header="Beschreibung" DisplayMemberBinding="{Binding Description}" Width="260"/><GridViewColumn x:Name="UserStateColumn" Header="Status" Width="110"><GridViewColumn.CellTemplate><DataTemplate><TextBlock Text="{Binding Status}"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource ReadyBrush}"/><Style.Triggers><DataTrigger Binding="{Binding Enabled}" Value="False"><Setter Property="Foreground" Value="{DynamicResource DangerBorderBrush}"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock></DataTemplate></GridViewColumn.CellTemplate></GridViewColumn></GridView></ListView.View></ListView>
+        </Grid></Border>
+        <Path Style="{StaticResource CardCorner}"/>
+        <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Style="{StaticResource CardGlow}"/>
+          <Border Grid.Column="0" Style="{StaticResource Card}"><StackPanel><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/status.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock x:Name="UserStatusTitle" Text="Status" Style="{StaticResource Heading}"/><TextBlock x:Name="UserStatusHeaderSub" Text="System-Informationen" Style="{StaticResource Sub}" Margin="0"/></StackPanel></StackPanel><Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,12,0,0"><Grid Height="72"><Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="UserStatusBadge" Width="54" Height="54" BorderBrush="{DynamicResource ReadyBrush}" BorderThickness="4" CornerRadius="27" VerticalAlignment="Center"><TextBlock x:Name="UserStatusSymbol" Text="✓" FontSize="36" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-5,0,0"/></Border><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="UserStatusText" Text="Bereit" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ReadyBrush}"/><TextBlock x:Name="UserStatusSub" Text="Keine Aktion aktiv" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,3,0,0"/></StackPanel></Grid></Border></StackPanel></Border>
+          <Path Grid.Column="0" Style="{StaticResource CardCorner}"/>
+          <Border Grid.Column="1" Style="{StaticResource CardGlow}"/>
+          <Border Grid.Column="1" Style="{StaticResource Card}"><StackPanel>
+            <StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/log.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock Text="Log PRO" Style="{StaticResource Heading}"/><TextBlock x:Name="UserLogHeaderSub" Text="Ereignisprotokoll" Style="{StaticResource Sub}" Margin="0" FontSize="11"/></StackPanel></StackPanel>
+            <ListBox x:Name="UserLogBox" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,9,0,0" FontFamily="Consolas" FontSize="11" Height="150" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"/></DataTemplate></ListBox.ItemTemplate></ListBox>
+          </StackPanel></Border>
+          <Path Grid.Column="1" Style="{StaticResource CardCorner}"/>
+        </Grid>
+      </Grid>
+
+      <Grid x:Name="RepairPage" Visibility="Collapsed"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Border Style="{StaticResource CardGlow}"/>
+        <Border Style="{StaticResource Card}"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions><StackPanel Grid.Row="0">
+          <StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/settings.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock x:Name="RepairTitle" Text="Windows-Reparatur" Style="{StaticResource Heading}"/><TextBlock x:Name="RepairHeaderSub" Text="Systemdateien prüfen und reparieren" Style="{StaticResource Sub}" Margin="0"/></StackPanel></StackPanel>
+          <TextBlock x:Name="RepairExplanation" Text="Zuerst DISM, danach SFC ausführen. Es wird nichts automatisch neu gestartet." Foreground="{DynamicResource SubtleTextBrush}" TextWrapping="Wrap" Margin="0,3,0,3" FontSize="12"/>
+          <Grid x:Name="RepairActionRow"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition/><ColumnDefinition Width="8"/><ColumnDefinition Width="140"/></Grid.ColumnDefinitions>
+            <Button x:Name="RepairDismButton" Grid.Column="0" Height="44" Click="StartDismRepair" Style="{StaticResource SmallButton}"><StackPanel><TextBlock Text="1 · DISM" FontWeight="Bold" HorizontalAlignment="Center"/><TextBlock x:Name="RepairDismSub" Text="Windows-Abbild reparieren" FontSize="11" HorizontalAlignment="Center"/></StackPanel></Button>
+            <Button x:Name="RepairSfcButton" Grid.Column="2" Height="44" Click="StartSfcRepair" Style="{StaticResource SmallButton}"><StackPanel><TextBlock Text="2 · SFC" FontWeight="Bold" HorizontalAlignment="Center"/><TextBlock x:Name="RepairSfcSub" Text="Systemdateien prüfen" FontSize="11" HorizontalAlignment="Center"/></StackPanel></Button>
+            <Button x:Name="RepairCancelButton" Grid.Column="4" Height="44" Click="CancelRepair" Style="{StaticResource SmallButton}" Background="{StaticResource AbortRedBrush}" BorderBrush="{StaticResource AbortRedBorderBrush}" IsEnabled="False"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Path Data="M 3,3 L 17,17 M 17,3 L 3,17" Stroke="{StaticResource AbortRedBorderBrush}" StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="19" Height="19" Stretch="Uniform" Margin="0,0,6,0"/><TextBlock x:Name="RepairCancelLabel" Text="Abbrechen" VerticalAlignment="Center" Foreground="White"/></StackPanel></Button>
+          </Grid>
+           <TextBlock x:Name="RepairProgressLabel" Text="Bereit. Reparatur auswählen." Foreground="{DynamicResource TextBrush}" FontWeight="SemiBold" Margin="0,4,0,2"/>
+          <ProgressBar x:Name="RepairProgress" Style="{StaticResource RepairProgressBar}" Height="11" Minimum="0" Maximum="100" Value="0"/>
+           <TextBlock x:Name="RepairTimeText" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,3,0,0" FontSize="11" Text="Laufzeit 00:00 · Restzeit noch nicht schätzbar"/>
+        </StackPanel><Grid Grid.Row="1" Margin="0,2,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <TextBlock x:Name="RepairResult" Grid.Column="0" Foreground="{DynamicResource SubtleTextBrush}" FontSize="13" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,10,0"/>
+          <Button x:Name="ShowRepairProtocolButton" Grid.Column="1" Click="ShowRepairProtocol" Style="{StaticResource LogActionButton}" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Bottom" ToolTip="Reparaturprotokoll anzeigen"><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/log.png" Width="17" Height="17" Margin="0,0,7,0"/><TextBlock x:Name="ShowRepairProtocolLabel" Text="Reparaturprotokoll anzeigen" VerticalAlignment="Center"/></StackPanel></Button>
+        </Grid></Grid></Border>
+        <Path Style="{StaticResource CardCorner}"/>
+        <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Style="{StaticResource CardGlow}"/>
+          <Border Grid.Column="0" Style="{StaticResource Card}"><StackPanel><StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/status.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock x:Name="RepairStatusTitle" Text="Status" Style="{StaticResource Heading}"/><TextBlock x:Name="RepairStatusHeaderSub" Text="System-Informationen" Style="{StaticResource Sub}" Margin="0"/></StackPanel></StackPanel><Border Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,12,0,0"><Grid Height="72"><Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border x:Name="RepairStatusBadge" Width="54" Height="54" BorderBrush="{DynamicResource ReadyBrush}" BorderThickness="4" CornerRadius="27" VerticalAlignment="Center"><TextBlock x:Name="RepairStatusSymbol" Text="✓" FontSize="36" Foreground="{DynamicResource TextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-5,0,0"/></Border><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="RepairStatusText" Text="Bereit" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource ReadyBrush}"/><TextBlock x:Name="RepairStatusSub" Text="Keine Aktion aktiv" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,3,0,0" TextWrapping="Wrap"/></StackPanel></Grid></Border></StackPanel></Border>
+          <Path Grid.Column="0" Style="{StaticResource CardCorner}"/>
+          <Border Grid.Column="1" Style="{StaticResource CardGlow}"/>
+          <Border Grid.Column="1" Style="{StaticResource Card}">
+            <Grid>
+              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+              <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal"><Image Source="Assets/icons/neon/log.png" Width="34" Height="34" Margin="0,0,10,0"/><StackPanel><TextBlock x:Name="RepairLogTitle" Text="Log PRO" Style="{StaticResource Heading}"/><TextBlock x:Name="RepairLogSub" Text="Reparaturprotokoll" Style="{StaticResource Sub}" Margin="0"/></StackPanel></StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                  <Button x:Name="ClearRepairLogButton" Click="ClearRepairLog" Style="{StaticResource LogActionButton}" Margin="0,0,5,0" Background="{DynamicResource DangerBrush}" BorderBrush="{DynamicResource DangerBorderBrush}"><StackPanel Orientation="Horizontal"><TextBlock Text="×" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource DangerBorderBrush}" Margin="0,-3,5,0"/><TextBlock x:Name="ClearRepairLogLabel" Text="Löschen" VerticalAlignment="Center"/></StackPanel></Button>
+                  <Button x:Name="OpenRepairLogButton" Click="OpenRepairLog" Style="{StaticResource LogActionButton}"><StackPanel Orientation="Horizontal"><Path Data="M 0,3 L 5,3 L 7,5 L 15,5 L 15,12 L 0,12 Z" Fill="{DynamicResource TextBrush}" Width="15" Height="15" Stretch="Uniform" Margin="0,0,5,0"/><TextBlock x:Name="OpenRepairLogLabel" Text="Datei öffnen" VerticalAlignment="Center"/></StackPanel></Button>
+                </StackPanel>
+              </Grid>
+              <ListBox x:Name="RepairLogBox" Grid.Row="1" Background="{DynamicResource InputBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Foreground="{DynamicResource SubtleTextBrush}" Margin="0,9,0,0" FontFamily="Segoe UI" FontSize="13" HorizontalContentAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True" VirtualizingPanel.ScrollUnit="Item">
+                <ListBox.ItemTemplate><DataTemplate>
+                  <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="4,3" Padding="8,6">
+                    <StackPanel>
+                      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Timestamp}" Foreground="{DynamicResource SubtleTextBrush}" FontSize="12"/><TextBlock Text="{Binding Phase}" Foreground="{DynamicResource AccentBrush}" Margin="8,0,0,0" FontSize="12" FontWeight="SemiBold"/></StackPanel>
+                        <TextBlock Grid.Column="1" Text="{Binding Level}" FontWeight="Bold" FontSize="12" Margin="6,0,0,0"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource SubtleTextBrush}"/><Style.Triggers><DataTrigger Binding="{Binding Level}" Value="FEHLER"><Setter Property="Foreground" Value="{DynamicResource DangerBorderBrush}"/></DataTrigger><DataTrigger Binding="{Binding Level}" Value="ABBRUCH"><Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/></DataTrigger><DataTrigger Binding="{Binding Level}" Value="ERFOLG"><Setter Property="Foreground" Value="{DynamicResource ReadyBrush}"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
+                      </Grid>
+                      <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate></ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </Border>
+          <Path Grid.Column="1" Style="{StaticResource CardCorner}"/>
+        </Grid>
+      </Grid>
+
+      <Border x:Name="SettingsBackdrop" Visibility="Collapsed" Background="#B0000000" Panel.ZIndex="4"/>
+      <Border x:Name="SettingsHalo" Visibility="{Binding Visibility, ElementName=SettingsPanel}" Width="350" Height="{Binding ActualHeight, ElementName=SettingsPanel}" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" CornerRadius="14" Effect="{DynamicResource NeonGlow}" IsHitTestVisible="False" Panel.ZIndex="5"/>
+      <Border x:Name="SettingsPanel" Visibility="Collapsed" Width="350" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" CornerRadius="14" Padding="15" Panel.ZIndex="6"><StackPanel>
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Grid.Column="0" Orientation="Horizontal"><Image Source="Assets/icons/neon/settings.png" Width="30" Height="30" Margin="0,0,9,0"/><StackPanel><TextBlock x:Name="SettingsTitle" Text="Optionen" Style="{StaticResource Heading}"/><TextBlock x:Name="SettingsSub" Text="App-Einstellungen anpassen" Style="{StaticResource Sub}" Margin="0"/></StackPanel></StackPanel><Button Grid.Column="1" Content="×" Style="{StaticResource OptionsCloseButton}" VerticalAlignment="Top" Margin="0,-8,-8,0" Click="ToggleSettings"/></Grid>
+        <Grid Margin="0,14,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="122"/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/><RowDefinition Height="36"/></Grid.RowDefinitions>
+          <TextBlock x:Name="LanguageTitle" Text="Sprache" FontWeight="Bold" VerticalAlignment="Center"/><StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Button x:Name="GermanButton" Width="88" Height="30" Click="German" Style="{StaticResource SmallButton}" Margin="0,0,6,0"><StackPanel Orientation="Horizontal"><Grid Width="22" Height="14" Margin="0,0,7,0"><Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Fill="#1B1B1B"/><Rectangle Grid.Row="1" Fill="#DD1E2F"/><Rectangle Grid.Row="2" Fill="#FFCE00"/></Grid><TextBlock Text="DE" VerticalAlignment="Center"/></StackPanel></Button><Button x:Name="EnglishButton" Width="88" Height="30" Click="English" Style="{StaticResource SmallButton}"><StackPanel Orientation="Horizontal"><Grid Width="22" Height="14" Margin="0,0,7,0" ClipToBounds="True"><Rectangle Fill="#174A8B"/><Rectangle Fill="White" Width="6"/><Rectangle Fill="White" Height="6"/><Rectangle Fill="#D21F3C" Width="3"/><Rectangle Fill="#D21F3C" Height="3"/></Grid><TextBlock Text="EN" VerticalAlignment="Center"/></StackPanel></Button></StackPanel>
+          <TextBlock x:Name="ThemeTitle" Grid.Row="1" Text="Design" FontWeight="Bold" VerticalAlignment="Center" Margin="0"/><ComboBox MaxDropDownHeight="190" x:Name="ThemeBox" Grid.Row="1" Grid.Column="1" Width="180" HorizontalAlignment="Left" SelectionChanged="ThemeChanged" Margin="0"><ComboBoxItem Content="Standard" IsSelected="True"/><ComboBoxItem Content="Neon Blau"/><ComboBoxItem Content="Neon Pink"/><ComboBoxItem Content="Neon Grün"/><ComboBoxItem Content="Retro"/><ComboBoxItem Content="Linux Mint"/><ComboBoxItem Content="Graphit" Tag="Graphit"/><ComboBoxItem Content="Windows Classic" Tag="Classic"/><ComboBoxItem Content="Dark"/></ComboBox>
+          <TextBlock x:Name="SizeTitle" Grid.Row="2" Text="App-Größe" FontWeight="Bold" VerticalAlignment="Center" Margin="0"/><ComboBox MaxDropDownHeight="190" x:Name="SizeBox" Grid.Row="2" Grid.Column="1" Width="180" HorizontalAlignment="Left" SelectionChanged="AppSizeChanged" Margin="0"><ComboBoxItem Content="Klein · 860 × 620"/><ComboBoxItem Content="Standard · 900 × 650" IsSelected="True"/><ComboBoxItem Content="Groß · 1050 × 760"/><ComboBoxItem Content="Sehr groß · 1200 × 870"/></ComboBox>
+          <TextBlock x:Name="WarningTitle" Grid.Row="3" Text="Timer-Warnung" FontWeight="Bold" VerticalAlignment="Center" Margin="0"/><CheckBox x:Name="WarningSound" Grid.Row="3" Grid.Column="1" Content="Warnung aktiv" IsChecked="True" Foreground="{DynamicResource TextBrush}" Margin="0" VerticalAlignment="Center" Click="SaveSettingsChanged"/>
+          <TextBlock x:Name="WarningSoundTitle" Grid.Row="4" Text="Warnton" FontWeight="Bold" VerticalAlignment="Center" Margin="0"/>
+          <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0" VerticalAlignment="Center">
+            <ComboBox MaxDropDownHeight="190" x:Name="WarningSoundBox" Width="135" SelectedIndex="0" SelectionChanged="WarningSoundChanged">
+              <ComboBoxItem Content="Alarm" Tag="alarm.wav"/><ComboBoxItem Content="Piep" Tag="beep.wav"/><ComboBoxItem Content="Glockenspiel" Tag="chime.wav"/><ComboBoxItem Content="Sirene" Tag="siren.wav"/>
+              <ComboBoxItem Content="Doppelton" Tag="double.wav"/><ComboBoxItem Content="Dreifachton" Tag="triple.wav"/><ComboBoxItem Content="Gong" Tag="gong.wav"/><ComboBoxItem Content="Signal" Tag="signal.wav"/>
+              <ComboBoxItem Content="Dringend" Tag="urgent.wav"/><ComboBoxItem Content="Digital" Tag="digital.wav"/><ComboBoxItem Content="System-Alarm" Tag="system-alert.wav"/><ComboBoxItem Content="System-Warnung" Tag="system-warning.wav"/>
+            </ComboBox>
+            <Button x:Name="TestSoundButton" Content="Test" Click="TestWarningSound" Style="{StaticResource SmallButton}" Margin="7,0,0,0"/>
+          </StackPanel>
+          <TextBlock x:Name="WarningVolumeTitle" Grid.Row="5" Text="Timer-Lautstärke" FontWeight="Bold" VerticalAlignment="Center" Margin="0"/><StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Slider x:Name="WarningVolume" Minimum="0" Maximum="100" Value="80" TickFrequency="5" IsSnapToTickEnabled="True" Width="136" VerticalAlignment="Center" ValueChanged="WarningVolumeChanged"/><TextBlock x:Name="WarningVolumeValue" Text="80%" Width="40" TextAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource SubtleTextBrush}"/></StackPanel>
+          <TextBlock x:Name="AutoStartTitle" Grid.Row="6" Text="Mit Windows starten" FontWeight="Bold" VerticalAlignment="Center" Margin="0"/><CheckBox x:Name="AutoStart" Grid.Row="6" Grid.Column="1" Content="Autostart aktiv" Foreground="{DynamicResource TextBrush}" Margin="0" VerticalAlignment="Center" Click="ToggleAutoStart"/>
+        </Grid><Button x:Name="DoneButton" Content="Fertig" Click="ToggleSettings" Margin="0,12,0,0" HorizontalAlignment="Center" Width="150"/>
+      </StackPanel></Border>
+    </Grid>
+    <Border Grid.Row="2" Background="{DynamicResource FooterBrush}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="POWER CONTROL PRO" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource FooterTextBrush}"/><Image Source="Assets/icons/neon/bolt.png" Width="15" Height="15" Margin="9,0,9,0"/><TextBlock Text="v1.0.2 · WPF" FontSize="11" Foreground="{DynamicResource FooterTextBrush}"/></StackPanel></Border>
+  </Grid>
+</Window>

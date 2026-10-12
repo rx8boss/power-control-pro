@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../PowerActionDispatcher.cs" Link="PowerActionDispatcher.cs" />
+    <Compile Include="../../TimerActionDispatcher.cs" Link="TimerActionDispatcher.cs" />
+    <Compile Include="../../ThemePalette.cs" Link="ThemePalette.cs" />
+    <Compile Include="../../RepairProgressParser.cs" Link="RepairProgressParser.cs" />
+    <Compile Include="../../RepairLogEntry.cs" Link="RepairLogEntry.cs" />
+    <Compile Include="../../RepairTimeEstimator.cs" Link="RepairTimeEstimator.cs" />
+    <Compile Include="../../RepairProtocol.cs" Link="RepairProtocol.cs" />
+    <Compile Include="../../RepairResultSummary.cs" Link="RepairResultSummary.cs" />
+    <Compile Include="../../RepairOutputEncoding.cs" Link="RepairOutputEncoding.cs" />
+  </ItemGroup>
+</Project>

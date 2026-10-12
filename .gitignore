@@ -1,24 +1,19 @@
-# Dependencies and generated packages
-node_modules/
-dist/
-outputs/
-Backups/
-*.zip
-*.exe
-*.log
-
-# Native C++ implementation intentionally excluded
-native/
-outputs-native/
-*.sln
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-*.obj
+# .NET / WPF generated output
+bin/
+obj/
+publish/
+TestResults/
+*.user
+*.suo
 *.pdb
-*.res
 
-# Local editor files
-.cursor/
+# Local settings and logs
+*.log
+settings.json
+
+# Editor / OS
+.vs/
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
