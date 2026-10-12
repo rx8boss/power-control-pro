@@ -1,0 +1,86 @@
+name: Fehler melden / Report a bug
+description: Melde einen Fehler in Power Control PRO. / Report a problem in Power Control PRO.
+title: "[Fehler] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für deine Meldung! / Thanks for reporting a bug!
+
+        Sicherheitslücken bitte **nicht öffentlich** melden. Nutze dafür [Report a vulnerability](https://github.com/rx8boss/power-control-pro/security/advisories).
+        Please report security vulnerabilities **privately**, not in an issue.
+
+        Entferne Passwörter, Benutzernamen und andere persönliche Daten aus Logs und Screenshots.
+        Remove passwords, usernames, and other personal data from logs and screenshots.
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App-Version / App version
+      description: Die Version steht unten im Programmfenster oder auf der Release-Seite. / Find it in the app footer or on the release page.
+      placeholder: "z. B. v1.0.2 WPF / e.g. v1.0.2 WPF"
+    validations:
+      required: true
+
+  - type: input
+    id: windows-version
+    attributes:
+      label: Windows-Version / Windows version
+      placeholder: "z. B. Windows 11 24H2 / e.g. Windows 11 24H2"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Betroffener Bereich / Affected area
+      options:
+        - Sofortaktionen / Immediate actions
+        - Timer
+        - Benutzerübersicht / User overview
+        - Windows-Reparatur / Windows repair
+        - Optionen und Design / Settings and themes
+        - Tray-Menü / Tray menu
+        - Protokolle / Logs
+        - Anderer Bereich / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen / Steps to reproduce
+      description: Beschreibe möglichst genau, wie der Fehler auftritt. / Explain how to trigger the problem.
+      placeholder: |
+        1. Programm öffnen / Open the app
+        2. ...
+        3. Fehler tritt auf / The problem occurs
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Was ist passiert? / Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Was sollte passieren? / Expected behavior
+    validations:
+      required: true
+
+  - type: input
+    id: display-settings
+    attributes:
+      label: Design, App-Größe und Sprache / Theme, app size and language
+      description: Wichtig bei Anzeige- oder Skalierungsfehlern. / Helpful for display or scaling issues.
+      placeholder: "z. B. Neon Blau, Klein, Deutsch / e.g. Neon Blue, Small, English"
+
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Screenshots und Protokollauszug / Screenshots and log excerpt
+      description: Optional. Bitte vor dem Hochladen persönliche Daten entfernen. / Optional. Remove personal data before uploading.
