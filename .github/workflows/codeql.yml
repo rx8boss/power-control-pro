@@ -35,7 +35,7 @@ jobs:
           build-mode: manual
 
       - name: WPF-App bauen
-        run: dotnet build .\PowerControlProWpf.csproj --configuration Release --no-incremental
+        run: dotnet build .\src\PowerLeitstandPro\PowerControlProWpf.csproj --configuration Release --no-incremental
 
       - name: Funktionstests ausführen
         run: dotnet run --project .\tests\ActionSmoke\ActionSmoke.csproj --configuration Release

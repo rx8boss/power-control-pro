@@ -2,7 +2,7 @@
 
 [![CodeQL · C#](https://github.com/rx8boss/powerleitstand-pro/actions/workflows/codeql.yml/badge.svg)](https://github.com/rx8boss/powerleitstand-pro/actions/workflows/codeql.yml)
 
-[Deutsch](#deutsch) · [English](#english)
+[Deutsch](#deutsch) · [English](#english) · [Programm-Vorschau](#vorschau--preview)
 
 ## Deutsch
 
@@ -31,9 +31,9 @@ Das Projekt wurde mit Unterstützung künstlicher Intelligenz, unter anderem Ope
 Voraussetzungen: Windows x64 und .NET 10 SDK. Im Repository-Verzeichnis:
 
 ```powershell
-dotnet build .\PowerControlProWpf.csproj -c Release
+dotnet build .\src\PowerLeitstandPro\PowerControlProWpf.csproj -c Release
 dotnet run --project .\tests\ActionSmoke\ActionSmoke.csproj -c Release
-dotnet publish .\PowerControlProWpf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o .\publish\Windows-x64
+dotnet publish .\src\PowerLeitstandPro\PowerControlProWpf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o .\publish\Windows-x64
 ```
 
 Die Datei `PowerLeitstand-PRO.exe` liegt danach in `publish\Windows-x64`; dieser Build-Befehl lädt nichts hoch. Generierte Dateien in `bin`, `obj` und `publish` werden nicht versioniert. Icons und Warnsounds sind Projektressourcen. Einstellungen und Logs behalten aus Kompatibilitätsgründen ihren bisherigen `%LOCALAPPDATA%\Power Control PRO`-Pfad.
@@ -65,9 +65,15 @@ This project was created and further developed with AI assistance, including Ope
 Requirements: Windows x64 and the .NET 10 SDK. Run these commands from the repository root:
 
 ```powershell
-dotnet build .\PowerControlProWpf.csproj -c Release
+dotnet build .\src\PowerLeitstandPro\PowerControlProWpf.csproj -c Release
 dotnet run --project .\tests\ActionSmoke\ActionSmoke.csproj -c Release
-dotnet publish .\PowerControlProWpf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o .\publish\Windows-x64
+dotnet publish .\src\PowerLeitstandPro\PowerControlProWpf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o .\publish\Windows-x64
 ```
 
 The standalone `PowerLeitstand-PRO.exe` is placed in `publish\Windows-x64`; these commands do not upload it. Generated `bin`, `obj` and `publish` files are excluded from Git; icons and warning sounds are embedded. Existing settings and logs keep the legacy `%LOCALAPPDATA%\Power Control PRO` path for compatibility.
+
+## Vorschau / Preview
+
+Aktuelle WPF-Oberfläche in Version 1.1.0 (Standarddesign, Beispielprotokoll) / Current WPF interface in version 1.1.0 (default theme, sample log):
+
+![PowerLeitstand PRO v1.1.0 – Hauptfenster](docs/screenshots/main-window.png)

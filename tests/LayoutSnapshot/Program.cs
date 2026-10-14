@@ -64,6 +64,18 @@ internal static class Program
             var titleLeft = ((FrameworkElement)window.FindName("HeaderIcon")!).TransformToAncestor(header).Transform(new Point()).X;
             if (adminRight > titleLeft)
                 throw new InvalidOperationException($"Admin badge overlaps the title at size {sizeIndex}.");
+            if (sizeIndex == 2)
+            {
+                typeof(MainWindow).GetField("_english", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(window, false);
+                typeof(MainWindow).GetMethod("ApplyLanguage", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(window, null);
+                typeof(MainWindow).GetMethod("ApplyTheme", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(window, ["Standard"]);
+                var log = (ListBox)window.FindName("LogBox")!;
+                log.Items.Clear();
+                log.Items.Add("[14.10.2026, 10:00:03] Benutzerübersicht aktualisiert.");
+                log.Items.Add("[14.10.2026, 10:00:00] PowerLeitstand PRO WPF gestartet.");
+                window.UpdateLayout();
+                Capture(window, Path.Combine(args[0], "home-readme.png"));
+            }
             VerifyUpdateStates(window);
 
             if (sizeIndex == 0)

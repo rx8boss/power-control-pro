@@ -7,9 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../PowerControlProWpf.csproj" />
-    <Resource Include="../../Assets/app-icon.ico" Link="Assets/app-icon.ico" />
-    <Resource Include="../../Assets/logo.png" Link="Assets/logo.png" />
-    <Resource Include="../../Assets/icons/**/*.png" Link="Assets/icons/%(RecursiveDir)%(Filename)%(Extension)" />
+    <ProjectReference Include="../../src/PowerLeitstandPro/PowerControlProWpf.csproj" />
+    <Resource Include="../../src/PowerLeitstandPro/Assets/app-icon.ico" Link="Assets/app-icon.ico" />
+    <Resource Include="../../src/PowerLeitstandPro/Assets/logo.png" Link="Assets/logo.png" />
+    <Resource Include="../../src/PowerLeitstandPro/Assets/icons/**/*.png" Link="Assets/icons/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>
