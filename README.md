@@ -1,5 +1,8 @@
 # PowerLeitstand PRO · Windows (WPF)
 
+![PowerLeitstand PRO v1.1.0 – Hauptfenster](docs/screenshots/main-window.png)
+
+
 [![CodeQL · C#](https://github.com/rx8boss/powerleitstand-pro/actions/workflows/codeql.yml/badge.svg)](https://github.com/rx8boss/powerleitstand-pro/actions/workflows/codeql.yml)
 
 [Deutsch](#deutsch) · [English](#english) · [Programm-Vorschau](#vorschau--preview)
@@ -75,5 +78,3 @@ The standalone `PowerLeitstand-PRO.exe` is placed in `publish\Windows-x64`; thes
 ## Vorschau / Preview
 
 Aktuelle WPF-Oberfläche in Version 1.1.0 (Standarddesign, Beispielprotokoll) / Current WPF interface in version 1.1.0 (default theme, sample log):
-
-![PowerLeitstand PRO v1.1.0 – Hauptfenster](docs/screenshots/main-window.png)
