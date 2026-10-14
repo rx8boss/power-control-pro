@@ -1,4 +1,4 @@
-name: CodeQL
+name: CodeQL · Windows/C#
 
 on:
   push:
@@ -15,29 +15,32 @@ permissions:
 
 jobs:
   analyze-csharp:
-    name: Analyze C# with a Windows build
+    name: C#-Analyse
     runs-on: windows-latest
     timeout-minutes: 60
 
     steps:
-      - name: Check out repository
+      - name: Quellcode laden
         uses: actions/checkout@v4
 
-      - name: Set up .NET 10
+      - name: .NET 10 einrichten
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Initialize CodeQL
+      - name: CodeQL initialisieren
         uses: github/codeql-action/init@v4
         with:
           languages: csharp
           build-mode: manual
 
-      - name: Build WPF app
+      - name: WPF-App bauen
         run: dotnet build .\PowerControlProWpf.csproj --configuration Release --no-incremental
 
-      - name: Analyze and upload results
+      - name: Funktionstests ausführen
+        run: dotnet run --project .\tests\ActionSmoke\ActionSmoke.csproj --configuration Release
+
+      - name: Analyse hochladen
         uses: github/codeql-action/analyze@v4
         with:
           category: /language:csharp

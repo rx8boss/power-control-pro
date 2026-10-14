@@ -1,5 +1,7 @@
 # PowerLeitstand PRO · Windows (WPF)
 
+[![CodeQL · C#](https://github.com/rx8boss/powerleitstand-pro/actions/workflows/codeql.yml/badge.svg)](https://github.com/rx8boss/powerleitstand-pro/actions/workflows/codeql.yml)
+
 [Deutsch](#deutsch) · [English](#english)
 
 ## Deutsch
