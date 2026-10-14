@@ -22,6 +22,9 @@ public partial class RepairResultWindow : Window
             palette.Colors[9] };
         for (var index = 0; index < keys.Length; index++)
             Resources[keys[index]] = Solid(colors[index]);
+        Resources["DialogSurface"] = new LinearGradientBrush(
+            (Color)ColorConverter.ConvertFromString(palette.Colors[3]),
+            (Color)ColorConverter.ConvertFromString(palette.Colors[4]), 45);
         Resources["ReadyBrush"] = Solid(palette.Ready);
         Resources["DangerBorderBrush"] = Solid(palette.Actions[1]);
         Resources["SuccessBrush"] = Solid(palette.Actions[2]);
@@ -40,10 +43,15 @@ public partial class RepairResultWindow : Window
         ResultTitle.Text = summary.Title;
         ResultMessage.Text = summary.Message;
         ResultDetail.Text = summary.Detail;
-        LaterButton.Content = summary.CanRestart
+        LaterLabel.Text = summary.CanRestart
             ? (english ? "Later" : "Später") : (english ? "Close" : "Schließen");
-        RestartButton.Content = english ? "Restart now" : "Jetzt neu starten";
+        RestartLabel.Text = english ? "Restart now" : "Jetzt neu starten";
         RestartButton.Visibility = summary.CanRestart ? Visibility.Visible : Visibility.Collapsed;
+        if (!summary.CanRestart)
+        {
+            System.Windows.Controls.Grid.SetColumnSpan(LaterButton, 2);
+            LaterButton.Margin = new Thickness(0);
+        }
         if (!summary.IsSuccess)
         {
             ResultBadge.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "DangerBorderBrush");

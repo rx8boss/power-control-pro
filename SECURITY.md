@@ -2,9 +2,9 @@
 
 ## Unterstützte Versionen / Supported Versions
 
-Sicherheitsmeldungen nehmen wir für die aktuelle Windows-WPF-Version von Power Control PRO entgegen. Die archivierte Electron-Version wird nicht mehr für Sicherheitsupdates gepflegt.
+Sicherheitsmeldungen nehmen wir für die aktuelle Windows-WPF-Version von PowerLeitstand PRO entgegen. Die archivierte Electron-Version wird nicht mehr für Sicherheitsupdates gepflegt.
 
-We accept security reports for the current Windows WPF version of Power Control PRO. The archived Electron version is no longer maintained for security updates.
+We accept security reports for the current Windows WPF version of PowerLeitstand PRO. The archived Electron version is no longer maintained for security updates.
 
 ## Sicherheitslücken melden / Reporting a Vulnerability
 

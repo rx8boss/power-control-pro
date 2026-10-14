@@ -1,8 +1,8 @@
 <Window x:Class="PowerControlProWpf.RepairResultWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Power Control PRO" Icon="Assets/app-icon.ico"
-        Width="560" Height="330" MinWidth="560" MinHeight="330"
+        Title="PowerLeitstand PRO" Icon="Assets/app-icon.ico"
+        Width="430" MinHeight="215" MaxHeight="330" SizeToContent="Height"
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" Background="{DynamicResource AppBrush}"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
@@ -20,6 +20,8 @@
     <SolidColorBrush x:Key="ReadyBrush" Color="#4ABF91"/>
     <SolidColorBrush x:Key="DangerBorderBrush" Color="#B75E76"/>
     <SolidColorBrush x:Key="SuccessBrush" Color="#254A63"/>
+    <LinearGradientBrush x:Key="DialogSurface" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#10344F" Offset="0"/><GradientStop Color="#061B30" Offset="1"/></LinearGradientBrush>
+    <LinearGradientBrush x:Key="DialogSheen" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#20FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush>
     <Style x:Key="DialogButton" TargetType="Button">
       <Setter Property="Background" Value="{DynamicResource ButtonBrush}"/>
       <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -32,8 +34,10 @@
       <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
         <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                CornerRadius="8" Padding="{TemplateBinding Padding}">
-          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                CornerRadius="7" Padding="{TemplateBinding Padding}">
+          <Grid><Border Background="{StaticResource DialogSheen}" CornerRadius="6" IsHitTestVisible="False"/>
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Grid>
         </Border>
         <ControlTemplate.Triggers>
           <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBorder" Property="Opacity" Value="0.92"/></Trigger>
@@ -47,44 +51,45 @@
       </Trigger></Style.Triggers>
     </Style>
   </Window.Resources>
-  <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="2" Padding="18" Background="{DynamicResource AppBrush}">
+  <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1.5" CornerRadius="11" Padding="14" Background="{DynamicResource DialogSurface}">
     <Grid>
-      <Grid.RowDefinitions><RowDefinition Height="42"/><RowDefinition Height="*"/><RowDefinition Height="49"/></Grid.RowDefinitions>
+      <Grid.RowDefinitions><RowDefinition Height="38"/><RowDefinition Height="Auto"/><RowDefinition Height="10"/><RowDefinition Height="34"/></Grid.RowDefinitions>
+      <Path Grid.RowSpan="4" Data="M 0 0 L 38 0 M 0 0 L 38 38" Stroke="{DynamicResource CardBorderBrush}" StrokeThickness="1" Opacity="0.55" HorizontalAlignment="Right" VerticalAlignment="Top" Width="38" Height="38" IsHitTestVisible="False"/>
       <Grid Grid.Row="0" MouseLeftButtonDown="DragDialog">
         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-          <Image x:Name="DialogIcon" Source="Assets/icons/neon/status.png" Width="32" Height="32" Margin="0,0,10,0"/>
-          <TextBlock x:Name="DialogHeader" Text="Windows-Reparatur" FontSize="20" FontWeight="Bold"
+          <Image x:Name="DialogIcon" Source="Assets/icons/neon/status.png" Width="30" Height="30" Margin="0,0,10,0"/>
+          <TextBlock x:Name="DialogHeader" Text="Windows-Reparatur" FontSize="15" FontWeight="Bold"
                      Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
         </StackPanel>
-        <Button Grid.Column="1" Width="32" Height="30" Click="CloseDialog" Style="{StaticResource DialogCloseButton}"
-                Background="#A51D36" BorderBrush="#FF6388" Foreground="White" Content="×" FontSize="20" Padding="0"/>
+        <Button Grid.Column="1" Width="30" Height="29" Click="CloseDialog" Style="{StaticResource DialogCloseButton}"
+                Background="#A51D36" BorderBrush="#FF6388" Foreground="White" Padding="0"><Path Data="M 3,3 L 16,16 M 16,3 L 3,16" Stroke="White" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform"/></Button>
       </Grid>
       <Border x:Name="ResultCard" Grid.Row="1" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource CardBorderBrush}"
-              BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,10,0,8">
+              BorderThickness="1" CornerRadius="7" Padding="10" Margin="0,7,0,0">
         <StackPanel>
-          <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-            <Border x:Name="ResultBadge" Width="50" Height="50" CornerRadius="25" BorderThickness="3"
-                    BorderBrush="{DynamicResource ReadyBrush}" Margin="0,0,14,0">
-              <TextBlock x:Name="ResultSymbol" Text="✓" FontSize="31" FontWeight="Bold"
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+            <Border x:Name="ResultBadge" Width="38" Height="38" CornerRadius="19" BorderThickness="2.5"
+                    BorderBrush="{DynamicResource ReadyBrush}" Margin="0,0,10,0">
+              <TextBlock x:Name="ResultSymbol" Text="✓" FontSize="24" FontWeight="Bold"
                          Foreground="{DynamicResource ReadyBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-            <TextBlock x:Name="ResultTitle" FontSize="19" FontWeight="Bold" TextWrapping="Wrap"
-                       Foreground="{DynamicResource ReadyBrush}" VerticalAlignment="Center" Width="415"/>
+            <TextBlock x:Name="ResultTitle" FontSize="16" FontWeight="Bold" TextWrapping="Wrap"
+                       Foreground="{DynamicResource ReadyBrush}" VerticalAlignment="Center" Width="315"/>
           </StackPanel>
-          <TextBlock x:Name="ResultMessage" FontSize="14" Foreground="{DynamicResource TextBrush}"
-                     TextWrapping="Wrap" MaxHeight="78"/>
-          <TextBlock x:Name="ResultDetail" FontSize="12" Foreground="{DynamicResource SubtleTextBrush}"
-                     Margin="0,12,0,0" TextWrapping="Wrap"/>
+          <TextBlock x:Name="ResultMessage" FontSize="12.5" Foreground="{DynamicResource TextBrush}"
+                     TextWrapping="Wrap" MaxHeight="80"/>
+          <TextBlock x:Name="ResultDetail" FontSize="11.5" Foreground="{DynamicResource SubtleTextBrush}"
+                     Margin="0,7,0,0" TextWrapping="Wrap"/>
         </StackPanel>
       </Border>
-      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-        <Button x:Name="LaterButton" Width="126" Height="36" Margin="0,0,8,0" Click="CloseDialog"
-                Style="{StaticResource DialogButton}" Content="Später"/>
-        <Button x:Name="RestartButton" Width="178" Height="36" Click="RestartDialog"
+      <Grid Grid.Row="3"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Button x:Name="LaterButton" Grid.Column="0" Height="33" Margin="0,0,5,0" Click="CloseDialog"
+                Style="{StaticResource DialogButton}" Padding="3"><StackPanel Orientation="Horizontal"><Path Data="M 3,3 L 16,16 M 16,3 L 3,16" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.8" Width="14" Height="14" Stretch="Uniform" Margin="0,0,7,0"/><TextBlock x:Name="LaterLabel" Text="Später" VerticalAlignment="Center"/></StackPanel></Button>
+        <Button x:Name="RestartButton" Grid.Column="1" Height="33" Margin="5,0,0,0" Click="RestartDialog"
                 Style="{StaticResource DialogButton}" Background="{DynamicResource SuccessBrush}"
-                BorderBrush="{DynamicResource ReadyBrush}" Foreground="White" Content="Jetzt neu starten"/>
-      </StackPanel>
+                BorderBrush="{DynamicResource ReadyBrush}" Foreground="White" Padding="3"><StackPanel Orientation="Horizontal"><Path Data="M 18,7 A 9,9 0 1 0 20,13 M 18,3 L 18,9 L 12,9" Stroke="White" StrokeThickness="2" Width="16" Height="16" Stretch="Uniform" Margin="0,0,7,0"/><TextBlock x:Name="RestartLabel" Text="Jetzt neu starten" VerticalAlignment="Center"/></StackPanel></Button>
+      </Grid>
     </Grid>
   </Border>
 </Window>

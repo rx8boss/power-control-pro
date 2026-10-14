@@ -38,7 +38,7 @@ public partial class RepairConfirmWindow : Window
         Background = (Brush)Resources["DialogBackground"];
         FontFamily = new FontFamily(palette.FontFamily);
         DialogIcon.Source = new BitmapImage(new Uri(
-            $"pack://application:,,,/Power%20Control%20PRO;component/Assets/icons/{palette.IconSet}/settings.png", UriKind.Absolute));
+            $"/{typeof(RepairConfirmWindow).Assembly.GetName().Name};component/Assets/icons/{palette.IconSet}/settings.png", UriKind.Relative));
         DialogHeader.Text = english ? "Windows repair" : "Windows-Reparatur";
         CommandText.Text = command;
         QuestionText.Text = english

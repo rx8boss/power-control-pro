@@ -263,7 +263,7 @@ public partial class MainWindow
     {
         if (_repairRunning) return;
         var question = _english ? "Delete the repair log permanently?" : "Reparaturprotokoll dauerhaft löschen?";
-        if (MessageBox.Show(this, question, "Power Control PRO", MessageBoxButton.YesNo,
+        if (MessageBox.Show(this, question, "PowerLeitstand PRO", MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         try
         {
@@ -273,7 +273,7 @@ public partial class MainWindow
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(this, ex.Message, "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, ex.Message, "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -298,7 +298,7 @@ public partial class MainWindow
         var question = _english
             ? "Stop this running Windows repair? Interrupting a repair may leave the operation incomplete."
             : "Laufende Windows-Reparatur abbrechen? Ein Abbruch kann den Reparaturvorgang unvollständig lassen.";
-        if (MessageBox.Show(this, question, "Power Control PRO", MessageBoxButton.YesNo,
+        if (MessageBox.Show(this, question, "PowerLeitstand PRO", MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
         RepairCancelButton.IsEnabled = false;
         RepairProgressLabel.Text = _english ? "Stopping repair…" : "Reparatur wird abgebrochen…";
@@ -308,19 +308,7 @@ public partial class MainWindow
 
     private void OpenRepairLog(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            if (!File.Exists(RepairLogFilePath))
-            {
-                MessageBox.Show(this, _english ? "No repair log yet." : "Noch kein Reparaturprotokoll vorhanden.");
-                return;
-            }
-            Process.Start(new ProcessStartInfo(RepairLogFilePath) { UseShellExecute = true });
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(this, ex.Message, "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
+        OpenLogFolder(RepairLogFilePath);
     }
 
     private void ShowRepairProtocol(object sender, RoutedEventArgs e)

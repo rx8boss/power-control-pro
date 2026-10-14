@@ -1,31 +1,26 @@
-# Power Control PRO · Windows (WPF)
+# PowerLeitstand PRO · Windows (WPF)
 
 [Deutsch](#deutsch) · [English](#english)
 
-![Echte Aufnahme der Windows-App](docs/screenshots/main-window.png)
-
 ## Deutsch
 
-Power Control PRO ist eine Windows-Desktop-App für sofortige Systemaktionen, zeitgesteuertes Herunterfahren, Neustarten und Sperren sowie die Prüfung und Reparatur von Windows-Systemdateien. Diese Repository-Hauptversion ist die **WPF-App**; die frühere Electron-Version liegt zur Sicherung im Branch [`archive/electron-2026-10-12`](https://github.com/rx8boss/power-control-pro/tree/archive/electron-2026-10-12).
+PowerLeitstand PRO – **Windows steuern · Aktionen planen · System reparieren** – ist eine Windows-Desktop-App für sofortige Systemaktionen, zeitgesteuertes Herunterfahren, Neustarten und Sperren sowie die Prüfung und Reparatur von Windows-Systemdateien. Die **WPF-App** ist die Hauptversion; die frühere Electron-Version liegt im Branch [`archive/electron-2026-10-12`](https://github.com/rx8boss/powerleitstand-pro/tree/archive/electron-2026-10-12).
 
 Das Projekt wurde mit Unterstützung künstlicher Intelligenz, unter anderem OpenAI Codex, erstellt und weiterentwickelt.
 
 ### Download und Start
 
-[**Aktuelle Windows-EXE herunterladen**](https://github.com/rx8boss/power-control-pro/releases/latest) – in der Release die Datei `Power-Control-PRO-Windows-x64.exe` wählen. Die EXE ist eigenständig und benötigt keine separate .NET-Installation. Unter Windows kann beim ersten Start eine Sicherheitsabfrage erscheinen; prüfe Herkunft und Prüfsumme der Release, bevor du sie ausführst. Die Anwendung wird nicht automatisch installiert.
+[**Windows-EXE herunterladen**](https://github.com/rx8boss/powerleitstand-pro/releases/latest) – ab Version 1.1.0 heißt die Datei `PowerLeitstand-PRO.exe`. Der Release enthält außerdem ein ZIP mit EXE, Kurzanleitung auf Deutsch und Englisch sowie Prüfsumme. Die EXE ist portabel und benötigt keine separate .NET-Installation. Prüfe Release-Version, Herkunft und SHA-256-Prüfsumme vor dem Start.
 
 ### Funktionen
 
 - Sofort: Herunterfahren, Neustart, Abmelden und Windows sperren – mit passenden Bestätigungen.
 - Timer: Herunterfahren, Neustart oder Sperren nach einstellbarer Zeit; laufenden Timer abbrechen und Warnton anpassen.
-- Benutzerübersicht mit aktualisierbarer Liste und Kennwortzurücksetzung, soweit Windows-Berechtigungen dies erlauben.
+- Benutzerübersicht mit Erstellen, Umbenennen, Bearbeiten und Löschen lokaler Konten (Name, Beschreibung, Aktivierung, Administratorrolle) sowie Kennwortzurücksetzung oder -entfernung. Ein Konto ohne Kennwort ist beim Erstellen und Zurücksetzen wählbar; Windows-Richtlinien können das ablehnen. Eine Windows-Hello-PIN wird dadurch nicht entfernt; der Dialog verweist für die PIN auf die Anmeldeoptionen des angemeldeten Benutzers. Der Profilordner wird beim Umbenennen nicht umbenannt und beim Löschen des Kontos nicht gelöscht. Änderungen erfordern Administratorrechte; integrierte Konten, das aktuelle Konto und das letzte aktive Administratorkonto sind bei kritischen Aktionen geschützt.
 - Windows-Reparatur: DISM und SFC mit Fortschritt, Abbruch, Ergebniszusammenfassung und kopierbarem Befehl. Reparaturen benötigen Administratorrechte und starten den PC nicht automatisch neu.
 - Deutsch und Englisch, neun Designs, vier App-Größen, Tray-Menü und optionaler Autostart.
+- Manuelle Update-Prüfung unter Optionen: GitHub-Release-Version prüfen, die einzige EXE im Release anhand des GitHub-SHA-256-Digests verifizieren und nach Zustimmung am bisherigen Ort austauschen. Laufende Timer oder Reparaturen blockieren das Update. Bei keiner oder mehreren EXEs wird nicht automatisch aktualisiert.
 - Dauerhafte Ereignis- und Reparaturprotokolle unter `%LOCALAPPDATA%\Power Control PRO\logs`; Einstellungen unter `%LOCALAPPDATA%\Power Control PRO\settings.json`.
-
-Aktueller Reparaturdialog:
-
-![Windows-Reparaturdialog](docs/screenshots/repair-dialog.png)
 
 **Wichtig:** Herunterfahren, Neustart, Abmelden und Sperren wirken auf den aktuellen PC. Vor einer Reparatur wichtige Daten sichern. DISM/SFC können länger dauern; ein Abbruch kann einen unvollständigen Reparaturzustand hinterlassen.
 
@@ -39,28 +34,27 @@ dotnet run --project .\tests\ActionSmoke\ActionSmoke.csproj -c Release
 dotnet publish .\PowerControlProWpf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o .\publish\Windows-x64
 ```
 
-Die EXE liegt danach in `publish\Windows-x64`. Generierte Dateien in `bin`, `obj` und `publish` werden nicht versioniert. Icons und Warnsounds sind als Projektressourcen eingebunden.
+Die Datei `PowerLeitstand-PRO.exe` liegt danach in `publish\Windows-x64`; dieser Build-Befehl lädt nichts hoch. Generierte Dateien in `bin`, `obj` und `publish` werden nicht versioniert. Icons und Warnsounds sind Projektressourcen. Einstellungen und Logs behalten aus Kompatibilitätsgründen ihren bisherigen `%LOCALAPPDATA%\Power Control PRO`-Pfad.
 
 ## English
 
-Power Control PRO is a Windows desktop app for immediate system actions, scheduled shutdown, restart and lock, and Windows system-file checks and repair. The **WPF app** is the primary version in this repository. The earlier Electron version is preserved in the [`archive/electron-2026-10-12`](https://github.com/rx8boss/power-control-pro/tree/archive/electron-2026-10-12) branch.
+PowerLeitstand PRO — **Control Windows · Schedule actions · Repair the system** — is a Windows desktop app for immediate system actions, scheduled shutdown, restart and lock, and Windows system-file checks and repair. The **WPF app** is the primary version. The earlier Electron version is preserved in the [`archive/electron-2026-10-12`](https://github.com/rx8boss/powerleitstand-pro/tree/archive/electron-2026-10-12) branch.
 
 This project was created and further developed with AI assistance, including OpenAI Codex.
 
 ### Download and run
 
-[**Download the current Windows EXE**](https://github.com/rx8boss/power-control-pro/releases/latest) and select `Power-Control-PRO-Windows-x64.exe`. It is self-contained and does not require a separate .NET installation. Windows may display a security prompt on first launch; check the release checksum before running it. This is a portable app, not an installer.
+[**Download the Windows EXE**](https://github.com/rx8boss/powerleitstand-pro/releases/latest). From version 1.1.0 onward, the file is named `PowerLeitstand-PRO.exe`. The release also includes a ZIP with the EXE, a German/English quick-start guide, and its checksum. The portable EXE needs no separate .NET installation. Verify the release version, origin, and SHA-256 checksum before running it.
 
 ### Features
 
 - Immediate shutdown, restart, sign-out and Windows lock with appropriate confirmation dialogs.
 - Scheduled shutdown, restart or lock; cancel an active timer and customize warning sounds.
-- Refreshable local-user overview and password reset where Windows permissions allow it.
+- Refreshable local-user overview; create, rename, edit and delete local accounts (name, description, enabled state and administrator role), or reset or remove a password. Passwordless creation and reset are optional, subject to Windows policy. This does not remove a Windows Hello PIN; the dialog links the signed-in user to Windows sign-in options. Renaming does not rename the profile folder; account deletion does not delete it. Administrator rights are required; built-in accounts, the current account and the last active administrator are protected for critical actions.
 - DISM and SFC repair with progress, cancellation, result summary and a copyable command. Administrator rights are required; the app does not restart Windows automatically after repair.
 - German and English, nine themes, four app sizes, tray menu and optional startup with Windows.
+- Manual update check in Options: compare the GitHub release version, verify the release's only EXE against its GitHub SHA-256 digest, and replace the EXE at its current location with consent. Active timers or repairs defer the update. No automatic update occurs if the release has zero or multiple EXEs.
 - Persistent event and repair logs in `%LOCALAPPDATA%\Power Control PRO\logs`; settings in `%LOCALAPPDATA%\Power Control PRO\settings.json`.
-
-Current repair dialog: [view screenshot](docs/screenshots/repair-dialog.png).
 
 **Caution:** Power actions affect the current PC. Back up important files before repair. DISM/SFC can take time, and cancelling may leave the repair incomplete.
 
@@ -74,4 +68,4 @@ dotnet run --project .\tests\ActionSmoke\ActionSmoke.csproj -c Release
 dotnet publish .\PowerControlProWpf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o .\publish\Windows-x64
 ```
 
-The resulting standalone EXE is placed in `publish\Windows-x64`. Generated `bin`, `obj` and `publish` files are excluded from Git; icons and warning sounds are embedded as project resources.
+The standalone `PowerLeitstand-PRO.exe` is placed in `publish\Windows-x64`; these commands do not upload it. Generated `bin`, `obj` and `publish` files are excluded from Git; icons and warning sounds are embedded. Existing settings and logs keep the legacy `%LOCALAPPDATA%\Power Control PRO` path for compatibility.

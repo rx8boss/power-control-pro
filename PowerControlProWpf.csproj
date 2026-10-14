@@ -7,7 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>Power Control PRO</AssemblyName>
+    <AssemblyName>PowerLeitstand-PRO</AssemblyName>
+    <Version>1.1.0</Version>
     <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -15,8 +16,10 @@
     <Compile Remove="tests\**\*.cs" />
     <None Remove="Assets\**\*" />
     <Resource Include="Assets\app-icon.ico" />
+    <Resource Include="Assets\logo.png" />
     <Resource Include="Assets\icons\**\*.png" />
     <Resource Include="Assets\sounds\warnings\*.wav" />
+    <Resource Include="Assets\sounds\clicks\soft.wav" />
   </ItemGroup>
 
 </Project>

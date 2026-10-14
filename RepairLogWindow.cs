@@ -18,7 +18,7 @@ internal sealed class RepairLogWindow : Window
 
     internal RepairLogWindow(IReadOnlyList<RepairLogEntry> entries, ThemePalette palette, bool english, Style? scrollBarStyle)
     {
-        Title = english ? "Repair log - Power Control PRO" : "Reparaturprotokoll - Power Control PRO";
+        Title = english ? "Repair log - PowerLeitstand PRO" : "Reparaturprotokoll - PowerLeitstand PRO";
         Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/Assets/app-icon.ico"));
         Width = 720;
         Height = 520;
@@ -48,8 +48,8 @@ internal sealed class RepairLogWindow : Window
         if (scrollBarStyle is not null) Resources[typeof(ScrollBar)] = scrollBarStyle;
         var outer = new Border
         {
-            BorderBrush = borderColor, BorderThickness = new Thickness(2),
-            Background = Background, Padding = new Thickness(18)
+            BorderBrush = borderColor, BorderThickness = new Thickness(1.5),
+            CornerRadius = new CornerRadius(11), Background = card, Padding = new Thickness(14)
         };
         var layout = new Grid();
         layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(42) });
@@ -58,6 +58,14 @@ internal sealed class RepairLogWindow : Window
         layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(48) });
         outer.Child = layout;
         Content = outer;
+        layout.Children.Add(new System.Windows.Shapes.Path
+        {
+            Data = Geometry.Parse("M 0 0 L 38 0 M 0 0 L 38 38"),
+            Stroke = borderColor, StrokeThickness = 1, Opacity = 0.55,
+            Width = 38, Height = 38,
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top, IsHitTestVisible = false
+        });
 
         var header = new Grid();
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -65,15 +73,29 @@ internal sealed class RepairLogWindow : Window
         header.MouseLeftButtonDown += (_, e) => { if (e.LeftButton == MouseButtonState.Pressed) DragMove(); };
         var title = new TextBlock
         {
-            Text = english ? "Repair log" : "Reparaturprotokoll", FontSize = 21,
+            Text = english ? "Repair log" : "Reparaturprotokoll", FontSize = 16,
             FontWeight = FontWeights.Bold, VerticalAlignment = VerticalAlignment.Center,
             Foreground = Foreground
         };
-        header.Children.Add(title);
+        var heading = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        heading.Children.Add(new System.Windows.Controls.Image
+        {
+            Source = new System.Windows.Media.Imaging.BitmapImage(new Uri(
+                $"pack://application:,,,/Assets/icons/{palette.IconSet}/log.png")),
+            Width = 29, Height = 29, Margin = new Thickness(0, 0, 9, 0)
+        });
+        heading.Children.Add(title);
+        header.Children.Add(heading);
         var close = CreateButton("×", Solid("#A51D36"), Solid("#FF6388"));
-        close.Width = 34;
-        close.Height = 30;
-        close.FontSize = 21;
+        close.Width = 30;
+        close.Height = 29;
+        close.Padding = new Thickness(0);
+        close.Content = new System.Windows.Shapes.Path
+        {
+            Data = Geometry.Parse("M 3,3 L 16,16 M 16,3 L 3,16"),
+            Stroke = System.Windows.Media.Brushes.White,
+            StrokeThickness = 2, Width = 13, Height = 13, Stretch = Stretch.Uniform
+        };
         close.Click += (_, _) => Close();
         Grid.SetColumn(close, 1);
         header.Children.Add(close);
@@ -149,6 +171,15 @@ internal sealed class RepairLogWindow : Window
         }
 
         var done = CreateButton(english ? "Close" : "Schließen", Solid(palette.Colors[9]), borderColor);
+        var doneContent = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
+        doneContent.Children.Add(new System.Windows.Shapes.Path
+        {
+            Data = Geometry.Parse("M 3,3 L 16,16 M 16,3 L 3,16"),
+            Stroke = accent, StrokeThickness = 1.8, Width = 14, Height = 14,
+            Stretch = Stretch.Uniform, Margin = new Thickness(0, 0, 7, 0)
+        });
+        doneContent.Children.Add(new TextBlock { Text = english ? "Close" : "Schließen", VerticalAlignment = VerticalAlignment.Center });
+        done.Content = doneContent;
         done.MinWidth = 140;
         done.Height = 36;
         done.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;

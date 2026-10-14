@@ -1,7 +1,7 @@
 <Window x:Class="PowerControlProWpf.RepairConfirmWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Power Control PRO" Icon="Assets/app-icon.ico"
+        Title="PowerLeitstand PRO" Icon="Assets/app-icon.ico"
         Width="420" MinHeight="184" MaxHeight="265" SizeToContent="Height"
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" UseLayoutRounding="True"
@@ -137,7 +137,7 @@
                    TextWrapping="NoWrap" ToolTip="Befehl markieren und kopieren"/>
           <Button x:Name="CopyButton" Grid.Column="1" Height="25" Margin="4,0,0,0"
                   Style="{StaticResource DialogButton}" FontSize="11" Click="CopyCommand">
-            <TextBlock x:Name="CopyCaption" Text="Kopieren"/>
+            <StackPanel Orientation="Horizontal"><Path Data="M 5,3 L 14,3 L 14,18 L 3,18 L 3,5 L 5,5 M 6,1 L 11,1 L 11,5 L 6,5 Z" Stroke="{DynamicResource DialogAccent}" StrokeThickness="1.5" Width="12" Height="13" Stretch="Uniform" Margin="0,0,4,0"/><TextBlock x:Name="CopyCaption" Text="Kopieren" VerticalAlignment="Center"/></StackPanel>
           </Button>
         </Grid>
       </Border>
@@ -146,8 +146,8 @@
         <Button x:Name="StartButton" Grid.Column="0" Height="33" Margin="0,0,5,0"
                 Style="{StaticResource PrimaryButton}" Click="StartDialog" IsDefault="True">
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <Path Data="M 3,2 L 17,10 L 3,18 Z" Stroke="{DynamicResource DialogAccent}"
-                  StrokeThickness="1.5" Fill="{DynamicResource DialogAccent}"
+            <Path Data="M 3,2 L 17,10 L 3,18 Z" Stroke="White"
+                  StrokeThickness="1.5" Fill="White"
                   Width="14" Height="15" Stretch="Uniform" Margin="0,0,7,0"/>
             <TextBlock x:Name="StartCaption" Text="Reparatur starten" VerticalAlignment="Center"/>
           </StackPanel>

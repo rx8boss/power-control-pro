@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Media;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
@@ -16,6 +17,7 @@ using Microsoft.Win32;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Button = System.Windows.Controls.Button;
+using CheckBox = System.Windows.Controls.CheckBox;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using ComboBox = System.Windows.Controls.ComboBox;
@@ -26,6 +28,7 @@ namespace PowerControlProWpf;
 
 public partial class MainWindow : Window
 {
+    private System.Windows.Style? _compactUserRowStyle;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private int _seconds = 300;
     private DateTimeOffset _timerDeadline;
@@ -44,6 +47,14 @@ public partial class MainWindow : Window
     private readonly Dictionary<Button, double> _baseButtonSizes = new();
     private readonly Dictionary<Image, (double Width, double Height)> _baseImageSizes = new();
     private readonly AppSettings _settings = AppSettings.Load();
+    private readonly DispatcherTimer _placementSaveTimer = new() { Interval = TimeSpan.FromMilliseconds(600) };
+    internal bool SkipSavedPlacementForTests { get; set; }
+    private bool _currentUserIsAdministrator;
+    private AvailableUpdate? _availableUpdate;
+    private UpdateCheckState _updateCheckState = UpdateCheckState.Checking;
+    private bool _updateCheckFailedConnection;
+    private int _updateCheckSequence;
+    private enum UpdateCheckState { Checking, Current, Available, Failed }
     private const string AutoStartKey = "PowerControlProWpf";
     private readonly string _logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Power Control PRO", "logs");
     private readonly object _logLock = new();
@@ -59,7 +70,22 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InstalledVersionText.Text = $"v{typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "1.1.0"} · WPF";
         _timer.Tick += TimerTick;
+        _placementSaveTimer.Tick += (_, _) => { _placementSaveTimer.Stop(); PersistWindowPosition(); };
+        SourceInitialized += (_, _) =>
+        {
+            if (SkipSavedPlacementForTests) return;
+            try { WindowPlacementService.ApplyOnStartup(this, _settings); }
+            catch (Exception exception) { Log("Fensterposition konnte nicht gesetzt werden: " + exception.Message); }
+        };
+        LocationChanged += (_, _) =>
+        {
+            if (SkipSavedPlacementForTests || !IsLoaded || WindowState != WindowState.Normal) return;
+            _placementSaveTimer.Stop();
+            _placementSaveTimer.Start();
+        };
+        Closing += (_, _) => { _placementSaveTimer.Stop(); if (!IsBusy) PersistWindowPosition(); };
         StateChanged += (_, _) =>
         {
             if (WindowState != WindowState.Minimized)
@@ -71,8 +97,31 @@ public partial class MainWindow : Window
         Loaded += (_, _) => { ApplyTheme(SelectedTheme()); ApplyLayoutScale(); };
         LoadPersistedLog();
         LoadPersistedRepairLog();
-        Log("Power Control PRO WPF gestartet.");
+        Log("PowerLeitstand PRO WPF gestartet.");
         LoadUsers(null, null!);
+    }
+
+    internal void CenterWindowOnCursorScreen()
+    {
+        try
+        {
+            WindowPlacementService.CenterOnCursorScreen(this);
+            PersistWindowPosition();
+        }
+        catch (Exception exception)
+        {
+            Log((_english ? "Could not center the window: " : "Fenster konnte nicht zentriert werden: ") + exception.Message);
+        }
+    }
+
+    private void PersistWindowPosition()
+    {
+        if (SkipSavedPlacementForTests || !WindowPlacementService.TryRemember(this, _settings)) return;
+        try { _settings.Save(); }
+        catch (Exception exception)
+        {
+            Log((_english ? "Window position could not be saved: " : "Fensterposition konnte nicht gespeichert werden: ") + exception.Message);
+        }
     }
 
     private static string ThemeId(ComboBoxItem item) => item.Tag?.ToString() ?? item.Content?.ToString() ?? "Standard";
@@ -86,6 +135,7 @@ public partial class MainWindow : Window
         WarningSound.IsChecked = _settings.WarningEnabled;
         WarningSoundBox.SelectedItem = WarningSoundBox.Items.OfType<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == _settings.WarningSound) ?? WarningSoundBox.Items[0];
         WarningVolume.Value = Math.Clamp(_settings.WarningVolume, 0, 100);
+        RequestAdministratorOnLaunch.IsChecked = _settings.RequestAdministratorOnLaunch;
         ApplySize();
     }
 
@@ -98,11 +148,181 @@ public partial class MainWindow : Window
         _settings.WarningEnabled = WarningSound.IsChecked == true;
         _settings.WarningSound = (WarningSoundBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "system-warning.wav";
         _settings.WarningVolume = (int)Math.Round(WarningVolume.Value);
+        _settings.RequestAdministratorOnLaunch = RequestAdministratorOnLaunch.IsChecked == true;
         try { _settings.Save(); }
         catch (Exception exception) { Log((_english ? "Settings could not be saved: " : "Einstellungen konnten nicht gespeichert werden: ") + exception.Message); }
     }
 
     private void SaveSettingsChanged(object s, RoutedEventArgs e) => SaveSettings();
+
+    internal async Task CheckForUpdatesOnStartupAsync()
+    {
+        var sequence = ++_updateCheckSequence;
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(12));
+        try
+        {
+            var update = await UpdateService.CheckAsync(cancellation.Token);
+            if (sequence != _updateCheckSequence) return;
+            _availableUpdate = update;
+            SetUpdateCheckState(_availableUpdate is null ? UpdateCheckState.Current : UpdateCheckState.Available);
+            if (_availableUpdate is not null)
+                (System.Windows.Application.Current as App)?.ShowUpdateNotification(_availableUpdate.Version.ToString());
+        }
+        catch (Exception exception)
+        {
+            if (sequence != _updateCheckSequence) return;
+            _updateCheckFailedConnection = exception is HttpRequestException or TaskCanceledException;
+            SetUpdateCheckState(UpdateCheckState.Failed);
+            Log((_english ? "Background update check failed: " : "Update-Prüfung im Hintergrund fehlgeschlagen: ") + exception.Message);
+        }
+    }
+
+    private void SetUpdateCheckState(UpdateCheckState state)
+    {
+        _updateCheckState = state;
+        var updateColor = state switch
+        {
+            UpdateCheckState.Current => "ReadyBrush",
+            UpdateCheckState.Available => "DangerBorderBrush",
+            UpdateCheckState.Failed => "WarningBrush",
+            _ => "AccentBrush"
+        };
+        UpdateNoticeIcon.SetResourceReference(System.Windows.Shapes.Path.StrokeProperty, updateColor);
+        UpdateNoticeButton.SetResourceReference(Button.BorderBrushProperty, updateColor);
+        CheckUpdatesButton.SetResourceReference(Button.BorderBrushProperty, updateColor);
+        CheckUpdatesButton.SetResourceReference(Button.BackgroundProperty, state switch
+        {
+            UpdateCheckState.Current => "UpdateCheckCurrentBrush",
+            UpdateCheckState.Available => "UpdateCheckAvailableBrush",
+            UpdateCheckState.Failed => "UpdateCheckFailedBrush",
+            _ => "ButtonBrush"
+        });
+        CheckUpdatesButton.ToolTip = state switch
+        {
+            UpdateCheckState.Current => _english ? "Up to date · check again" : "Aktuell · erneut prüfen",
+            UpdateCheckState.Available => _english ? "Update available · check and install" : "Update verfügbar · prüfen und installieren",
+            UpdateCheckState.Failed => _english ? "Update check failed · try again" : "Update-Prüfung fehlgeschlagen · erneut versuchen",
+            _ => _english ? "Update check in progress" : "Update-Prüfung läuft"
+        };
+        UpdateNoticeButton.ToolTip = state switch
+        {
+            UpdateCheckState.Current => _english ? "Version is up to date" : "Version ist aktuell",
+            UpdateCheckState.Available => _english ? $"Update {_availableUpdate?.Version} available" : $"Update {_availableUpdate?.Version} verfügbar",
+            UpdateCheckState.Failed => _updateCheckFailedConnection
+                ? (_english ? "No connection for update check" : "Keine Verbindung für die Update-Prüfung")
+                : (_english ? "Update check failed" : "Update-Prüfung fehlgeschlagen"),
+            _ => _english ? "Checking for updates" : "Updates werden geprüft"
+        };
+        System.Windows.Automation.AutomationProperties.SetName(UpdateNoticeButton, UpdateNoticeButton.ToolTip.ToString()!);
+        FooterUpdateStatus.Text = state switch
+        {
+            UpdateCheckState.Current => _english ? "Up to date" : "Aktuell",
+            UpdateCheckState.Available => _english ? $"Update {_availableUpdate?.Version}" : $"Update {_availableUpdate?.Version}",
+            UpdateCheckState.Failed => _updateCheckFailedConnection
+                ? (_english ? "No connection" : "Keine Verbindung")
+                : (_english ? "Check failed" : "Prüfung fehlgeschlagen"),
+            _ => _english ? "Checking…" : "Prüfung läuft"
+        };
+        FooterUpdateStatus.SetResourceReference(TextBlock.ForegroundProperty,
+            state == UpdateCheckState.Current ? "ReadyBrush" :
+            state == UpdateCheckState.Available ? "DangerBorderBrush" :
+            state == UpdateCheckState.Failed ? "WarningBrush" : "FooterTextBrush");
+        UpdateStatus.Visibility = state == UpdateCheckState.Checking || SettingsNoticePanel.Visibility == Visibility.Visible
+            ? Visibility.Collapsed : Visibility.Visible;
+        UpdateStatus.Text = state switch
+        {
+            UpdateCheckState.Current => _english ? "This version is up to date." : "Diese Version ist aktuell.",
+            UpdateCheckState.Available => (_english ? "New version available: " : "Neue Version verfügbar: ") + _availableUpdate?.Version,
+            UpdateCheckState.Failed => _updateCheckFailedConnection
+                ? (_english ? "No connection to GitHub releases." : "Keine Verbindung zu GitHub-Releases.")
+                : (_english ? "The update check could not be completed." : "Die Update-Prüfung konnte nicht abgeschlossen werden."),
+            _ => _english ? "Checking GitHub releases…" : "GitHub-Releases werden geprüft…"
+        };
+        SettingsNoticeIcon.SetResourceReference(System.Windows.Shapes.Path.StrokeProperty, updateColor);
+        NoticeCurrentLabel.Text = _english ? "Up to date" : "Aktuell";
+        NoticeConnectionLabel.Text = state == UpdateCheckState.Failed && !_updateCheckFailedConnection
+            ? (_english ? "Check failed" : "Prüfung fehlgeschlagen")
+            : (_english ? "No connection" : "Keine Verbindung");
+        NoticeAvailableLabel.Text = _english ? "Update available" : "Update verfügbar";
+        foreach (var (row, active) in new[]
+        {
+            (NoticeCurrentRow, state == UpdateCheckState.Current),
+            (NoticeConnectionRow, state == UpdateCheckState.Failed),
+            (NoticeAvailableRow, state == UpdateCheckState.Available)
+        })
+        {
+            row.BorderThickness = new Thickness(active ? 1.8 : 1.3);
+            row.Opacity = active ? 1 : 0.82;
+        }
+        SettingsNoticeDetail.Visibility = state is UpdateCheckState.Available or UpdateCheckState.Checking
+            ? Visibility.Visible : Visibility.Collapsed;
+        SettingsNoticeDetail.Text = state switch
+        {
+            UpdateCheckState.Available => (_english ? "Available: v" : "Verfügbar: v") + _availableUpdate?.Version,
+            UpdateCheckState.Checking => _english ? "Checking…" : "Prüfung läuft…",
+            _ => string.Empty
+        };
+        SettingsNoticeInstalled.Text = (_english ? "Installed: v" : "Installiert: v") +
+            (typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "1.1.0");
+    }
+
+    internal void OpenUpdateNotice(object s, RoutedEventArgs e)
+    {
+        SetSettingsOverlay(showOptions: false, showNotice: true);
+    }
+
+    private void CloseSettingsNotice(object s, RoutedEventArgs e)
+    {
+        SetSettingsOverlay(showOptions: false, showNotice: false);
+    }
+
+    private void OpenProjectOnGitHub(object s, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo(ProjectLinks.RepositoryUrl) { UseShellExecute = true }); }
+        catch (Exception exception)
+        {
+            MessageBox.Show((_english ? "The GitHub page could not be opened: " : "Die GitHub-Seite konnte nicht geöffnet werden: ") + exception.Message,
+                "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private async void CheckUpdates(object s, RoutedEventArgs e)
+    {
+        if (IsBusy)
+        {
+            MessageBox.Show(_english ? "Finish the active timer or repair first." : "Bitte zuerst den aktiven Timer oder die Reparatur beenden.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        CheckUpdatesButton.IsEnabled = false;
+        ++_updateCheckSequence;
+        _updateCheckFailedConnection = false;
+        SetUpdateCheckState(UpdateCheckState.Checking);
+        UpdateStatus.Visibility = SettingsNoticePanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+        try
+        {
+            var update = await UpdateService.CheckAsync();
+            _availableUpdate = update;
+            if (update is null)
+            {
+                SetUpdateCheckState(UpdateCheckState.Current);
+                return;
+            }
+            SetUpdateCheckState(UpdateCheckState.Available);
+            if (MessageBox.Show(_english ? $"Download and install version {update.Version}? The app will restart." : $"Version {update.Version} herunterladen und installieren? Die App startet danach neu.", "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            UpdateStatus.Text = _english ? "Downloading and verifying SHA-256…" : "Download und SHA-256-Prüfung laufen…";
+            SettingsNoticeDetail.Text = _english ? "Download and SHA-256 verification are running. Do not close the app." : "Download und SHA-256-Prüfung laufen. Bitte die App nicht schließen.";
+            await UpdateService.PrepareAndLaunchAsync(update, () => IsBusy);
+            System.Windows.Application.Current.Shutdown();
+        }
+        catch (Exception exception)
+        {
+            _updateCheckFailedConnection = exception is HttpRequestException or TaskCanceledException;
+            SetUpdateCheckState(_availableUpdate is null ? UpdateCheckState.Failed : UpdateCheckState.Available);
+            Log((_english ? "Update failed: " : "Update fehlgeschlagen: ") + exception.Message);
+            MessageBox.Show((_english ? "The update could not be installed. The existing EXE is unchanged: " : "Das Update konnte nicht installiert werden. Die bisherige EXE bleibt erhalten: ") + exception.Message, "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally { CheckUpdatesButton.IsEnabled = true; }
+    }
     private void WarningSoundChanged(object s, SelectionChangedEventArgs e) => SaveSettings();
     private void WarningVolumeChanged(object s, RoutedPropertyChangedEventArgs<double> e)
     {
@@ -124,21 +344,23 @@ public partial class MainWindow : Window
         var factor = SizeBox.SelectedIndex switch { 2 => 1050.0 / 900, 3 => 1200.0 / 900, _ => 1.0 };
         var compact = SizeBox.SelectedIndex == 0;
         Root.RowDefinitions[0].Height = new GridLength(90 * factor);
-        Root.RowDefinitions[2].Height = new GridLength(24 * factor);
-        Root.RowDefinitions[3].Height = new GridLength(32 * factor);
-        HeaderLayout.ColumnDefinitions[0].Width = new GridLength(145 * factor);
-        HeaderLayout.ColumnDefinitions[2].Width = new GridLength(155 * factor);
+        Root.RowDefinitions[2].Height = new GridLength(44 * factor);
+        Root.RowDefinitions[3].Height = new GridLength(12 * factor);
+        HeaderLayout.ColumnDefinitions[0].Width = new GridLength(245 * factor);
+        HeaderLayout.ColumnDefinitions[2].Width = new GridLength(205 * factor);
+        FooterLayout.ColumnDefinitions[0].Width = new GridLength(190 * factor);
+        FooterLayout.ColumnDefinitions[2].Width = new GridLength(210 * factor);
 
         foreach (var textBlock in FindVisualChildren<TextBlock>(Root))
         {
-            if (IsInside(textBlock, SettingsPanel) || IsInside(textBlock, LogBox) || IsInside(textBlock, UserLogBox) || IsInside(textBlock, RepairLogBox) || IsInside(textBlock, UserList)) continue;
+            if (IsInside(textBlock, SettingsPanel) || IsInside(textBlock, SettingsNoticePanel) || IsInside(textBlock, LogBox) || IsInside(textBlock, UserLogBox) || IsInside(textBlock, RepairLogBox) || IsInside(textBlock, UserList)) continue;
             if (!_baseTextSizes.TryGetValue(textBlock, out var baseSize))
                 _baseTextSizes[textBlock] = baseSize = textBlock.FontSize;
             textBlock.FontSize = Math.Round(baseSize * factor);
         }
         foreach (var button in FindVisualChildren<Button>(Root))
         {
-            if (IsInside(button, SettingsPanel) || IsInside(button, LogBox) || IsInside(button, UserLogBox) || IsInside(button, RepairLogBox) || IsInside(button, UserList)) continue;
+            if (IsInside(button, SettingsPanel) || IsInside(button, SettingsNoticePanel) || IsInside(button, LogBox) || IsInside(button, UserLogBox) || IsInside(button, RepairLogBox) || IsInside(button, UserList)) continue;
             if (!_baseButtonSizes.TryGetValue(button, out var baseSize))
                 _baseButtonSizes[button] = baseSize = button.FontSize;
             button.FontSize = Math.Round(baseSize * factor);
@@ -150,9 +372,11 @@ public partial class MainWindow : Window
             }
         }
         PageIndicator.Width = 36 * factor;
+        AdminRightsBadge.Width = 132 * factor;
+        AdminRightsBadge.Height = 32 * factor;
         foreach (var icon in FindVisualChildren<Image>(Root))
         {
-            if (IsInside(icon, SettingsPanel)) continue;
+            if (IsInside(icon, SettingsPanel) || IsInside(icon, SettingsNoticePanel)) continue;
             if (!_baseImageSizes.TryGetValue(icon, out var baseSize))
                 _baseImageSizes[icon] = baseSize = (icon.Width, icon.Height);
             icon.Width = baseSize.Width * factor;
@@ -174,21 +398,24 @@ public partial class MainWindow : Window
         LogBox.FontSize = 11 * factor;
         UserLogBox.FontSize = Math.Round(13 * factor);
         RepairLogBox.FontSize = Math.Round(14 * factor);
-        UserList.FontSize = Math.Round(13 * factor);
+        UserList.FontSize = Math.Round((compact ? 11 : 12) * factor);
         foreach (var sub in new[] { UsersSub, StatusSub, UserStatusHeaderSub, UserLogHeaderSub,
                      RepairHeaderSub, RepairStatusHeaderSub, RepairLogSub, UserStatusSub, RepairStatusSub })
             sub.FontSize = Math.Round(13 * factor);
         CurrentUserText.FontSize = Math.Round(14 * factor);
         CurrentUserRole.FontSize = Math.Round(12 * factor);
+        AdminRightsStatus.FontSize = Math.Round(10 * factor);
         RepairExplanation.FontSize = Math.Round(13 * factor);
         RepairProgressLabel.FontSize = Math.Round(14 * factor);
         RepairTimeText.FontSize = RepairResult.FontSize = Math.Round(13 * factor);
         RepairDismSub.FontSize = RepairSfcSub.FontSize = Math.Round(12 * factor);
         foreach (var button in new[] { RepairDismButton, RepairSfcButton, RepairCancelButton,
-                     ResetPasswordButton, RefreshUsersButton, ClearRepairLogButton, OpenRepairLogButton })
+                     CreateUserButton, EditUserButton, RefreshUsersButton, ClearRepairLogButton, OpenRepairLogButton })
             button.FontSize = Math.Round(12 * factor);
+        foreach (var button in new[] { CreateUserButton, EditUserButton, RefreshUsersButton })
+            button.FontSize = Math.Round(13 * factor);
         LogBox.Height = (compact ? 112 : 120) * factor;
-        UserLogBox.Height = (compact ? 134 : 150) * factor;
+        UserLogBox.Height = double.NaN;
         RepairDismButton.Height = RepairSfcButton.Height = RepairCancelButton.Height = (compact ? 40 : 44) * factor;
         RepairActionRow.ColumnDefinitions[4].Width = new GridLength(140 * factor);
         RepairProgress.Height = 11 * factor;
@@ -201,9 +428,21 @@ public partial class MainWindow : Window
         ShowRepairProtocolButton.FontSize = Math.Round(12 * factor);
         UpdateRepairProtocolButtonLabel();
         UserList.Height = double.NaN;
-        ResetPasswordButton.Width = 150 * factor;
-        ResetPasswordButton.Height = RefreshUsersButton.Height = 28 * factor;
-        RefreshUsersButton.Width = 105 * factor;
+        var standardUserRowStyle = (System.Windows.Style)UserList.Resources["UserListRowStyle"];
+        if (compact)
+        {
+            _compactUserRowStyle ??= new System.Windows.Style(typeof(System.Windows.Controls.ListViewItem), standardUserRowStyle);
+            if (_compactUserRowStyle.Setters.Count == 0)
+                _compactUserRowStyle.Setters.Add(new Setter(FrameworkElement.HeightProperty, 24.0));
+            UserList.ItemContainerStyle = _compactUserRowStyle;
+        }
+        else
+        {
+            UserList.ItemContainerStyle = standardUserRowStyle;
+        }
+        CreateUserButton.Width = EditUserButton.Width = 164 * factor;
+        CreateUserButton.Height = EditUserButton.Height = RefreshUsersButton.Height = 40 * factor;
+        RefreshUsersButton.Width = 132 * factor;
         foreach (var badge in new[] { StatusBadge, UserStatusBadge, RepairStatusBadge })
         {
             badge.Width = badge.Height = 54 * factor;
@@ -214,12 +453,7 @@ public partial class MainWindow : Window
                 badgeRow.ColumnDefinitions[0].Width = new GridLength(64 * factor);
             }
         }
-        if (UserList.View is GridView userColumns)
-        {
-            var widths = new[] { 180.0, 160, 260, 110 };
-            for (var index = 0; index < Math.Min(userColumns.Columns.Count, widths.Length); index++)
-                userColumns.Columns[index].Width = widths[index] * factor;
-        }
+        SizeUserColumns();
         TimerSub.Width = SizeBox.SelectedIndex == 0 ? 105 : 124 * factor;
         if (TimerValue.Parent is StackPanel timerValueStack && timerValueStack.Parent is Border timerPicker && timerPicker.Parent is Grid timerHeader)
             timerHeader.ColumnDefinitions[1].Width = new GridLength(225 * factor);
@@ -303,12 +537,12 @@ public partial class MainWindow : Window
     {
         if (IsBusy)
         {
-            MessageBox.Show(_english ? "Finish the active timer or repair first." : "Bitte zuerst den aktiven Timer oder die Reparatur beenden.", "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(_english ? "Finish the active timer or repair first." : "Bitte zuerst den aktiven Timer oder die Reparatur beenden.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         var label = ActionLabel(action);
         var question = _english ? $"Run {label} now?" : $"{label} jetzt ausführen?";
-        if (MessageBox.Show(question, "Power Control PRO", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (MessageBox.Show(question, "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         ExecuteAction(action);
     }
 
@@ -334,7 +568,7 @@ public partial class MainWindow : Window
         catch (Exception exception)
         {
             Log((_english ? "Action failed: " : "Aktion fehlgeschlagen: ") + exception.Message);
-            MessageBox.Show((_english ? "Windows could not perform this action: " : "Windows konnte die Aktion nicht ausführen: ") + exception.Message, "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show((_english ? "Windows could not perform this action: " : "Windows konnte die Aktion nicht ausführen: ") + exception.Message, "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
     private void StartTimerShutdown(object s, RoutedEventArgs e) => StartTimer("shutdown");
@@ -467,11 +701,27 @@ public partial class MainWindow : Window
         UpdatePageNavigation();
     }
 
+    internal void ShowUsersPage()
+    {
+        _pageIndex = 1;
+        HomePage.Visibility = RepairPage.Visibility = Visibility.Collapsed;
+        UserPage.Visibility = Visibility.Visible;
+        UpdatePageNavigation();
+    }
+
     private void ToggleSettings(object s, RoutedEventArgs e)
     {
-        var visible = SettingsPanel.Visibility != Visibility.Visible;
-        SettingsPanel.Visibility = SettingsBackdrop.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        HomePage.IsEnabled = UserPage.IsEnabled = RepairPage.IsEnabled = PageNavigation.IsEnabled = !visible;
+        SetSettingsOverlay(showOptions: SettingsPanel.Visibility != Visibility.Visible, showNotice: false);
+    }
+
+    private void SetSettingsOverlay(bool showOptions, bool showNotice)
+    {
+        SettingsShell.Visibility = SettingsPanel.Visibility = showOptions ? Visibility.Visible : Visibility.Collapsed;
+        SettingsNoticePanel.Visibility = showNotice ? Visibility.Visible : Visibility.Collapsed;
+        SettingsBackdrop.Visibility = showOptions || showNotice ? Visibility.Visible : Visibility.Collapsed;
+        UpdateStatus.Visibility = showOptions && _updateCheckState != UpdateCheckState.Checking
+            ? Visibility.Visible : Visibility.Collapsed;
+        HomePage.IsEnabled = UserPage.IsEnabled = RepairPage.IsEnabled = PageNavigation.IsEnabled = !(showOptions || showNotice);
     }
     private void Minimize(object s, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     private void CloseApp(object s, RoutedEventArgs e) => Close();
@@ -498,15 +748,22 @@ public partial class MainWindow : Window
 
     private void OpenLog(object s, RoutedEventArgs e)
     {
+        OpenLogFolder(LogFilePath);
+    }
+
+    private void OpenLogFolder(string logFilePath)
+    {
         try
         {
             Directory.CreateDirectory(_logDirectory);
-            if (!File.Exists(LogFilePath)) File.WriteAllText(LogFilePath, string.Empty);
-            Process.Start(new ProcessStartInfo(LogFilePath) { UseShellExecute = true });
+            var arguments = File.Exists(logFilePath)
+                ? $"/select,\"{logFilePath}\""
+                : $"\"{_logDirectory}\"";
+            Process.Start(new ProcessStartInfo("explorer.exe", arguments) { UseShellExecute = true });
         }
         catch (Exception exception)
         {
-            MessageBox.Show((_english ? "The log file could not be opened: " : "Die Logdatei konnte nicht geöffnet werden: ") + exception.Message, "Log PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show((_english ? "The log folder could not be opened: " : "Der Protokollordner konnte nicht geöffnet werden: ") + exception.Message, "Log PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -515,9 +772,10 @@ public partial class MainWindow : Window
 
     private void ApplyLanguage()
     {
-        TitleText.Text = "Power Control";
+        Title = "PowerLeitstand PRO";
+        TitleText.Text = "PowerLeitstand";
         UpdatePageNavigation();
-        MottoText.Text = _english ? "FAST  /  SAFE  /  RELIABLE" : "SCHNELL  /  SICHER  /  ZUVERLÄSSIG";
+        MottoText.Text = _english ? "Control Windows · Schedule actions · Repair the system" : "Windows steuern · Aktionen planen · System reparieren";
         ImmediateTitle.Text = _english ? "Immediate" : "Sofort"; ImmediateSub.Text = _english ? "Direct system actions" : "Direkte Systemaktionen";
         ShutdownLabel.Text = TimerShutdownLabel.Text = _english ? "Shut down" : "Herunterfahren"; ShutdownSub.Text = _english ? "Turn off PC" : "PC ausschalten";
         RestartLabel.Text = TimerRestartLabel.Text = _english ? "Restart" : "Neustart"; RestartSub.Text = _english ? "Restart PC" : "PC neu starten";
@@ -536,8 +794,13 @@ public partial class MainWindow : Window
         {
             SetTimerState(false);
         }
-        LogSub.Text = UserLogHeaderSub.Text = _english ? "Event log" : "Ereignisprotokoll"; RefreshLogLabel.Text = _english ? "Refresh" : "Aktualisieren"; ClearLogLabel.Text = _english ? "Clear" : "Löschen"; OpenLogLabel.Text = _english ? "Open file" : "Datei öffnen";
-        UsersTitle.Text = _english ? "User overview" : "Benutzerübersicht"; UsersSub.Text = _english ? "Local Windows users" : "Lokale Windows-Benutzer"; RefreshUsersButton.Content = _english ? "↻ Refresh" : "↻ Aktualisieren"; ResetPasswordButton.Content = _english ? "Reset password" : "Kennwort zurücksetzen";
+        LogSub.Text = UserLogHeaderSub.Text = _english ? "Event log" : "Ereignisprotokoll"; RefreshLogLabel.Text = _english ? "Refresh" : "Aktualisieren"; ClearLogLabel.Text = _english ? "Clear" : "Löschen"; OpenLogLabel.Text = _english ? "Open folder" : "Ordner öffnen";
+        UsersTitle.Text = _english ? "User overview" : "Benutzerübersicht"; UsersSub.Text = _english ? "Local Windows users" : "Lokale Windows-Benutzer"; RefreshUsersLabel.Text = _english ? "Refresh" : "Aktualisieren"; CreateUserLabel.Text = _english ? "Create user" : "Benutzer erstellen"; EditUserLabel.Text = _english ? "Edit user" : "Benutzer bearbeiten";
+        CreateUserButton.ToolTip = _english ? "Create a local user" : "Lokalen Benutzer erstellen";
+        EditUserButton.ToolTip = _english ? "Edit selected user" : "Ausgewählten Benutzer bearbeiten";
+        RefreshUsersButton.ToolTip = _english ? "Refresh user list" : "Benutzerliste aktualisieren";
+        UpdateTitle.Text = _english ? "Updates" : "Updates";
+        CheckUpdatesLabel.Text = _english ? "Check for updates" : "Nach Updates suchen";
         RepairTitle.Text = _english ? "Windows repair" : "Windows-Reparatur";
         RepairHeaderSub.Text = _english ? "Check and repair system files" : "Systemdateien prüfen und reparieren";
         RepairExplanation.Text = _english
@@ -548,7 +811,7 @@ public partial class MainWindow : Window
         RepairCancelLabel.Text = _english ? "Cancel" : "Abbrechen";
         RepairLogTitle.Text = "Log PRO";
         RepairLogSub.Text = _english ? "Repair log" : "Reparaturprotokoll";
-        OpenRepairLogLabel.Text = _english ? "Open file" : "Datei öffnen";
+        OpenRepairLogLabel.Text = _english ? "Open folder" : "Ordner öffnen";
         ClearRepairLogLabel.Text = _english ? "Delete" : "Löschen";
         UpdateRepairProtocolButtonLabel();
         UpdateRepairTime();
@@ -567,9 +830,23 @@ public partial class MainWindow : Window
         else RepairProgressLabel.Text = _english ? "Ready. Select a repair." : "Bereit. Reparatur auswählen.";
         UpdateRepairStatus();
         UserNameColumn.Header = _english ? "User" : "Benutzer"; UserRoleColumn.Header = _english ? "Type" : "Typ"; UserDescriptionColumn.Header = _english ? "Description" : "Beschreibung"; UserStateColumn.Header = _english ? "Status" : "Status";
-        SettingsTitle.Text = _english ? "Options" : "Optionen"; SettingsSub.Text = _english ? "Adjust app settings" : "App-Einstellungen anpassen"; LanguageTitle.Text = _english ? "Language" : "Sprache"; ThemeTitle.Text = _english ? "Design" : "Design"; SizeTitle.Text = _english ? "App size" : "App-Größe";
-        WarningTitle.Text = _english ? "Timer warning" : "Timer-Warnung"; WarningSound.Content = _english ? "Warning enabled" : "Warnung aktiv"; WarningSoundTitle.Text = _english ? "Warning tone" : "Warnton"; WarningVolumeTitle.Text = _english ? "Timer volume" : "Timer-Lautstärke"; TestSoundButton.Content = _english ? "Test" : "Test";
-        AutoStartTitle.Text = _english ? "Start with Windows" : "Mit Windows starten"; AutoStart.Content = _english ? "Autostart enabled" : "Autostart aktiv"; DoneButton.Content = _english ? "Done" : "Fertig";
+        SettingsTitle.Text = _english ? "Options" : "Optionen"; SettingsSub.Text = _english ? "Application settings" : "Einstellungen der Anwendung"; LanguageTitle.Text = _english ? "Language" : "Sprache"; ThemeTitle.Text = _english ? "Design" : "Design"; SizeTitle.Text = _english ? "App size" : "App-Größe";
+        foreach (var (button, selected) in new[] { (GermanButton, !_english), (EnglishButton, _english) })
+        {
+            button.SetResourceReference(Button.BackgroundProperty, selected ? "ButtonBrush" : "InputBrush");
+            button.SetResourceReference(Button.BorderBrushProperty, selected ? "AccentBrush" : "InputBorderBrush");
+            button.BorderThickness = selected ? new Thickness(1.5) : new Thickness(1);
+        }
+        WarningTitle.Text = _english ? "Timer warning" : "Timer-Warnung"; WarningSound.Content = _english ? "Warning enabled" : "Warnung aktiv"; WarningSoundTitle.Text = _english ? "Warning tone" : "Warnton"; WarningVolumeTitle.Text = _english ? "Timer volume" : "Timer-Lautstärke"; TestSoundLabel.Text = "Test";
+        AutoStartTitle.Text = _english ? "Start with Windows" : "Mit Windows starten"; AutoStart.Content = _english ? "Autostart enabled" : "Autostart aktiv"; DoneLabel.Text = _english ? "Done" : "Fertig";
+        ElevationTitle.Text = _english ? "Admin rights" : "Adminrechte";
+        RequestAdministratorOnLaunch.Content = _english ? "Request on launch" : "Beim Start anfordern";
+        RequestAdministratorOnLaunch.ToolTip = _english
+            ? "Manual launches only; Windows autostart does not request UAC."
+            : "Nur bei manuellem Start; Windows-Autostart bleibt ohne UAC-Abfrage.";
+        SettingsNoticeHeading.Text = _english ? "Bell status" : "Glocken-Status";
+        SettingsNoticeClose.ToolTip = _english ? "Close notice" : "Hinweis schließen";
+        GitHubProjectButton.ToolTip = _english ? "Open GitHub project" : "GitHub-Projekt öffnen";
         SetComboContents(SizeBox, _english ? new[] { "Small · 860 × 620", "Standard · 900 × 650", "Large · 1050 × 760", "Very large · 1200 × 870" } : new[] { "Klein · 860 × 620", "Standard · 900 × 650", "Groß · 1050 × 760", "Sehr groß · 1200 × 870" });
         SetComboContents(WarningSoundBox, _english
             ? new[] { "Alarm", "Beep", "Chime", "Siren", "Double tone", "Triple tone", "Gong", "Signal", "Urgent", "Digital", "System alert", "System warning" }
@@ -581,6 +858,7 @@ public partial class MainWindow : Window
         }
         TimerValue.Text = TimerLabel();
         UpdateCurrentUserLabel();
+        SetUpdateCheckState(_updateCheckState);
         if (IsLoaded) (System.Windows.Application.Current as App)?.UpdateTrayPresentation(SelectedTheme(), _english);
     }
 
@@ -593,7 +871,23 @@ public partial class MainWindow : Window
     private void LoadAutoStart()
     {
         using var key = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: false);
-        AutoStart.IsChecked = key?.GetValue(AutoStartKey) is not null;
+        var command = key?.GetValue(AutoStartKey) as string;
+        AutoStart.IsChecked = command is not null;
+        var currentExecutable = Environment.ProcessPath;
+        if (command is not null && !command.Contains("--tray", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(currentExecutable) &&
+            command.Trim().Equals($"\"{currentExecutable}\"", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                using var writable = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: true);
+                writable?.SetValue(AutoStartKey, command + " --tray");
+            }
+            catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
+            {
+                Log((_english ? "Autostart could not be updated: " : "Autostart konnte nicht angepasst werden: ") + exception.Message);
+            }
+        }
     }
 
     private void ToggleAutoStart(object s, RoutedEventArgs e)
@@ -604,7 +898,7 @@ public partial class MainWindow : Window
         {
             var path = Environment.ProcessPath;
             if (string.IsNullOrWhiteSpace(path)) return;
-            key.SetValue(AutoStartKey, $"\"{path}\"");
+            key.SetValue(AutoStartKey, $"\"{path}\" --tray");
             Log(_english ? "Windows autostart enabled." : "Windows-Autostart aktiviert.");
         }
         else { key.DeleteValue(AutoStartKey, false); Log(_english ? "Windows autostart disabled." : "Windows-Autostart deaktiviert."); }
@@ -635,12 +929,22 @@ public partial class MainWindow : Window
         Resources["HeaderTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(palette.HeaderText));
         Resources["HeaderSubtleBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(palette.HeaderSubtle));
         Resources["FooterTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(palette.FooterText));
+        Resources["HeaderAccentBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
+            palette.HeaderTextOverride is null ? colors[7] : palette.HeaderText));
         var actionColors = palette.Actions;
         var actionKeys = new[] { "DangerBrush", "DangerBorderBrush", "SuccessBrush", "LockBrush", "CancelBrush", "WarningBrush" };
         for (var index = 0; index < actionKeys.Length; index++) Resources[actionKeys[index]] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(actionColors[index]));
         Resources["ReadyBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(palette.Ready));
+        Resources["NoticeCurrentSurfaceBrush"] = new SolidColorBrush(BlendColor(card, (Color)ColorConverter.ConvertFromString(palette.Ready), 0.46));
+        Resources["NoticeConnectionSurfaceBrush"] = new SolidColorBrush(BlendColor(card, (Color)ColorConverter.ConvertFromString(actionColors[5]), 0.46));
+        Resources["NoticeAvailableSurfaceBrush"] = new SolidColorBrush(BlendColor(card, (Color)ColorConverter.ConvertFromString(actionColors[1]), 0.46));
+        Resources["UpdateCheckCurrentBrush"] = new SolidColorBrush(BlendColor(button, (Color)ColorConverter.ConvertFromString(palette.Ready), 0.34));
+        Resources["UpdateCheckFailedBrush"] = new SolidColorBrush(BlendColor(button, (Color)ColorConverter.ConvertFromString(actionColors[5]), 0.34));
+        Resources["UpdateCheckAvailableBrush"] = new SolidColorBrush(BlendColor(button, (Color)ColorConverter.ConvertFromString(actionColors[1]), 0.34));
         Resources["CardBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(palette.IsNeon ? colors[7] : colors[8]));
         Resources["ActionTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FBFF"));
+        Resources["DefaultActionTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(
+            name is "Classic" or "Linux Mint" ? colors[5] : "#F8FBFF"));
         Resources["SelectionBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colors[10]));
         var glowHex = palette.Glow ?? (name == "Standard" ? colors[7] : null);
         var glowColor = glowHex is null ? Colors.Transparent : (Color)ColorConverter.ConvertFromString(glowHex);
@@ -652,11 +956,10 @@ public partial class MainWindow : Window
         var cardRadius = new CornerRadius(name == "Classic" ? 8 : 13);
         foreach (var border in FindVisualChildren<Border>(Root))
             if (ReferenceEquals(border.Style, Resources["Card"]) || ReferenceEquals(border.Style, Resources["CardGlow"])) border.CornerRadius = cardRadius;
-        var showCornerDetails = name is not ("Classic" or "Linux Mint" or "Retro");
         foreach (var corner in FindVisualChildren<System.Windows.Shapes.Path>(Root))
             if (ReferenceEquals(corner.Style, Resources["CardCorner"]))
-                corner.Visibility = showCornerDetails ? Visibility.Visible : Visibility.Collapsed;
-        SettingsPanel.CornerRadius = new CornerRadius(name == "Classic" ? 8 : 14);
+                corner.Visibility = Visibility.Visible;
+        SettingsPanel.CornerRadius = new CornerRadius(name == "Classic" ? 8 : 12);
         SettingsHalo.CornerRadius = SettingsPanel.CornerRadius;
         SwitchIconSet(palette.IconSet);
         (System.Windows.Application.Current as App)?.UpdateTrayPresentation(name, _english);
@@ -703,7 +1006,7 @@ public partial class MainWindow : Window
     private void TestWarningSound(object s, RoutedEventArgs e)
     {
         if (!PlayWarningSound())
-            MessageBox.Show(_english ? "The selected warning sound could not be played." : "Der gewählte Warnton konnte nicht abgespielt werden.", "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(_english ? "The selected warning sound could not be played." : "Der gewählte Warnton konnte nicht abgespielt werden.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private bool PlayWarningSound(string? overrideFile = null, double volumeFactor = 1)
@@ -741,7 +1044,7 @@ public partial class MainWindow : Window
         RefreshUsersButton.IsEnabled = false;
         try
         {
-            var users = await Task.Run(ReadLocalUsers);
+            var users = await Task.Run(() => ReadLocalUsers());
             UserList.Items.Clear();
             foreach (var user in users) UserList.Items.Add(user);
             UpdateCurrentUserLabel(users);
@@ -750,7 +1053,7 @@ public partial class MainWindow : Window
         catch (Exception exception)
         {
             Log((_english ? "User overview failed: " : "Benutzerübersicht fehlgeschlagen: ") + exception.Message);
-            MessageBox.Show((_english ? "Local users could not be loaded: " : "Lokale Benutzer konnten nicht geladen werden: ") + exception.Message, "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show((_english ? "Local users could not be loaded: " : "Lokale Benutzer konnten nicht geladen werden: ") + exception.Message, "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally { RefreshUsersButton.IsEnabled = true; }
     }
@@ -758,39 +1061,221 @@ public partial class MainWindow : Window
     private void UpdateCurrentUserLabel(IReadOnlyList<UserEntry>? users = null)
     {
         CurrentUserText.Text = (_english ? "Current user: " : "Aktueller Benutzer: ") + Environment.UserName;
-        var admin = users?.FirstOrDefault(user => user.Name.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase))?.Role == "Administrator" || IsAdmin();
-        CurrentUserRole.Text = admin ? "Administrator" : (_english ? "Standard user" : "Standardbenutzer");
-        CurrentUserRole.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, admin ? "ReadyBrush" : "AccentBrush");
+        if (users is not null)
+            _currentUserIsAdministrator = users.FirstOrDefault(user =>
+                user.Name.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase))?.Role == "Administrator";
+        var elevated = IsAdmin();
+        CurrentUserRole.Text = _currentUserIsAdministrator || elevated ? "Administrator" : (_english ? "Standard user" : "Standardbenutzer");
+        CurrentUserRole.SetResourceReference(TextBlock.ForegroundProperty, _currentUserIsAdministrator || elevated ? "ReadyBrush" : "AccentBrush");
+        AdminRightsStatus.Text = elevated
+            ? _english ? "Admin active" : "Admin aktiv"
+            : _english ? "No admin rights" : "Ohne Adminrechte";
+        AdminRightsBadge.ToolTip = elevated
+            ? _english ? "The app is running with administrator rights." : "Die App wurde mit Administratorrechten gestartet."
+            : _english ? "The app is not running with administrator rights." : "Die App wurde nicht als Administrator gestartet.";
+        AdminRightsBadge.SetResourceReference(Button.BorderBrushProperty, elevated ? "ReadyBrush" : "WarningBrush");
+        AdminRightsIcon.SetResourceReference(System.Windows.Shapes.Path.StrokeProperty, elevated ? "ReadyBrush" : "WarningBrush");
+        AdminRightsStatus.SetResourceReference(TextBlock.ForegroundProperty, elevated ? "ReadyBrush" : "WarningBrush");
     }
 
-    private void UserSelectionChanged(object s, SelectionChangedEventArgs e) => ResetPasswordButton.IsEnabled = UserList.SelectedItem is UserEntry;
+    private void UserSelectionChanged(object s, SelectionChangedEventArgs e) => EditUserButton.IsEnabled = UserList.SelectedItem is UserEntry;
 
-    private void ResetPassword(object s, RoutedEventArgs e)
+    private void UserListSizeChanged(object s, SizeChangedEventArgs e) => SizeUserColumns();
+
+    private void SizeUserColumns()
     {
-        if (UserList.SelectedItem is not UserEntry user) return;
-        var confirm = _english
-            ? $"Reset the Windows password for {user.Name}? This will immediately replace the current password."
-            : $"Windows-Kennwort für {user.Name} zurücksetzen? Das bisherige Kennwort wird sofort ersetzt.";
-        if (MessageBox.Show(confirm, "Power Control PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
-        var password = PasswordResetDialog.Prompt(this, user.Name, _english);
-        if (password is null) return;
-        var info = new UserInfo1003 { Password = password };
-        var result = NetUserSetInfo(null, user.Name, 1003, ref info, out _);
-        info.Password = string.Empty;
-        password = string.Empty;
-        if (result == 0) { Log(_english ? $"Password changed for {user.Name}." : $"Kennwort für {user.Name} geändert."); MessageBox.Show(_english ? "The password was changed." : "Das Kennwort wurde geändert.", "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Information); }
-        else
+        if (UserList.View is not GridView columns || columns.Columns.Count != 4 || UserList.ActualWidth < 400) return;
+        var width = UserList.ActualWidth - 20;
+        columns.Columns[0].Width = Math.Round(width * 0.23);
+        columns.Columns[1].Width = Math.Round(width * 0.20);
+        columns.Columns[2].Width = Math.Round(width * 0.38);
+        columns.Columns[3].Width = Math.Max(90, width - columns.Columns[0].Width - columns.Columns[1].Width - columns.Columns[2].Width);
+    }
+
+    private async void CreateUser(object s, RoutedEventArgs e)
+    {
+        if (!RequireUserAdmin()) return;
+        var dialog = new UserEditorDialog(this, null);
+        if (dialog.ShowDialog() != true || dialog.Values is not { } values) return;
+        var createQuestion = _english ? $"Create local Windows account {values.Name}?" : $"Lokales Windows-Konto {values.Name} erstellen?";
+        if (values.WithoutPassword)
+            createQuestion += _english ? " This account will have no password. Windows security policy may reject it." : " Dieses Konto hat kein Kennwort. Die Windows-Sicherheitsrichtlinie kann das ablehnen.";
+        if (MessageBox.Show(createQuestion, "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        try
         {
-            var detail = new Win32Exception(result).Message;
-            if (result == 5) detail += _english ? " Start the app as administrator for another account." : " Für ein anderes Konto die App als Administrator starten.";
-            Log((_english ? "Password change failed for " : "Kennwortänderung fehlgeschlagen für ") + user.Name + ": " + detail);
-            MessageBox.Show((_english ? "Windows could not change the password: " : "Windows konnte das Kennwort nicht ändern: ") + detail, "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            await Task.Run(() => LocalUserManager.Create(values.Name, values.Password, values.FullName, values.Description, values.WithoutPassword, values.Enabled, values.Administrator));
+            Log((_english ? "Local account created: " : "Lokales Konto erstellt: ") + values.Name);
+            LoadUsers(null, null!);
+        }
+        catch (Win32Exception exception) when (values.WithoutPassword && exception.NativeErrorCode == 2245)
+        {
+            var detail = _english
+                ? "Windows rejected the empty password under its password policy. Create the account with a password or change the policy separately."
+                : "Windows hat das leere Kennwort wegen der Kennwortrichtlinie abgelehnt. Erstelle das Konto mit Kennwort oder ändere die Richtlinie separat.";
+            Log((_english ? "Account creation failed for " : "Kontoerstellung fehlgeschlagen für ") + values.Name + ": " + detail);
+            MessageBox.Show(detail, "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception exception) { UserEditError(values.Name, exception); }
+    }
+
+    private async void EditUser(object s, RoutedEventArgs e)
+    {
+        if (UserList.SelectedItem is not UserEntry user || !RequireUserAdmin()) return;
+        if (IsProtectedUser(user))
+        {
+            MessageBox.Show(_english ? "This built-in Windows account is protected." : "Dieses integrierte Windows-Konto ist geschützt.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        var dialog = new UserEditorDialog(this, user);
+        if (dialog.ShowDialog() != true) return;
+        if (dialog.ResetPasswordRequested) { ResetPasswordFor(user); return; }
+        if (dialog.DeleteRequested) { await DeleteUser(user); return; }
+        if (dialog.Values is not { } values) return;
+        if (!user.Name.Equals(values.Name, StringComparison.Ordinal) &&
+            user.Sid?.Equals(WindowsIdentity.GetCurrent().User?.Value, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            MessageBox.Show(_english ? "Sign in with another administrator account to rename the account currently in use."
+                                     : "Zum Umbenennen des aktuell verwendeten Kontos bitte mit einem anderen Administratorkonto anmelden.",
+                "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (user.Name.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase) && (!values.Enabled || !values.Administrator && user.Role == "Administrator"))
+        {
+            MessageBox.Show(_english ? "The current account cannot be disabled or demoted here." : "Das aktuelle Konto kann hier nicht deaktiviert oder herabgestuft werden.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        if (user.Role == "Administrator" && (!values.Enabled || !values.Administrator) && UserList.Items.OfType<UserEntry>().Count(entry => entry.Enabled && entry.Role == "Administrator") <= 1)
+        {
+            MessageBox.Show(_english ? "The last active administrator account must be retained." : "Das letzte aktive Administratorkonto muss erhalten bleiben.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        var editQuestion = _english ? $"Apply changes to {user.Name}?" : $"Änderungen an {user.Name} übernehmen?";
+        if (!user.Name.Equals(values.Name, StringComparison.Ordinal))
+            editQuestion += _english ? $" Rename to {values.Name}? The profile folder will not be renamed." : $" In {values.Name} umbenennen? Der Profilordner wird nicht umbenannt.";
+        if (MessageBox.Show(editQuestion, "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        try
+        {
+            await Task.Run(() => LocalUserManager.Edit(user.Name, values.Name, user.Sid!, values.FullName, values.Description, values.Enabled, values.Administrator, user.Role == "Administrator"));
+            Log((_english ? "Local account updated: " : "Lokales Konto bearbeitet: ") + user.Name + (user.Name == values.Name ? string.Empty : " → " + values.Name));
+            LoadUsers(null, null!);
+        }
+        catch (Exception exception) { UserEditError(user.Name, exception); }
+    }
+
+    private async Task DeleteUser(UserEntry selected)
+    {
+        if (!RequireUserAdmin() || IsProtectedUser(selected)) return;
+        UserEntry? current;
+        try
+        {
+            var users = await Task.Run(() => ReadLocalUsers(requireAdminMembership: true));
+            current = users.FirstOrDefault(user => user.Sid?.Equals(selected.Sid, StringComparison.OrdinalIgnoreCase) == true);
+            if (current is null || IsProtectedUser(current))
+                throw new InvalidOperationException(_english ? "The selected account no longer exists or is protected." : "Das ausgewählte Konto existiert nicht mehr oder ist geschützt.");
+            if (current.Sid?.Equals(WindowsIdentity.GetCurrent().User?.Value, StringComparison.OrdinalIgnoreCase) == true)
+                throw new InvalidOperationException(_english ? "The account currently in use cannot be deleted." : "Das aktuell verwendete Konto kann nicht gelöscht werden.");
+            if (current.Enabled && current.Role == "Administrator" && users.Count(user => user.Enabled && user.Role == "Administrator") <= 1)
+                throw new InvalidOperationException(_english ? "The last active administrator account must be retained." : "Das letzte aktive Administratorkonto muss erhalten bleiben.");
+        }
+        catch (Exception exception) { UserEditError(selected.Name, exception); return; }
+
+        var question = _english
+            ? $"Permanently delete the local Windows account {current.Name}? The profile folder and user files will not be deleted."
+            : $"Lokales Windows-Konto {current.Name} endgültig löschen? Profilordner und Benutzerdateien werden nicht gelöscht.";
+        if (MessageBox.Show(question, "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        try
+        {
+            await Task.Run(() => LocalUserManager.Delete(current.Name, current.Sid!));
+            Log((_english ? "Local account deleted: " : "Lokales Konto gelöscht: ") + current.Name);
+            LoadUsers(null, null!);
+        }
+        catch (Exception exception) { UserEditError(current.Name, exception); }
+    }
+
+    private void OpenAdminStatus(object s, RoutedEventArgs e)
+    {
+        if (IsAdmin())
+        {
+            MessageBox.Show(_english ? "The app is running with administrator rights." : "Die App läuft mit Administratorrechten.",
+                "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        RequestElevation(_pageIndex == 1);
+    }
+
+    private bool RequireUserAdmin()
+    {
+        if (IsAdmin()) return true;
+        RequestElevation(openUsersPage: true);
+        return false;
+    }
+
+    private void RequestElevation(bool openUsersPage)
+    {
+        if (!ThemedMessageBox.ShowElevationPrompt(this)) return;
+        if (IsBusy)
+        {
+            MessageBox.Show(_english ? "Finish the active timer or repair before restarting as administrator."
+                                     : "Bitte zuerst den aktiven Timer oder die Reparatur beenden, bevor die App als Administrator neu startet.",
+                "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        try
+        {
+            if (ElevationService.TryRestartAsAdministrator(openUsersPage))
+                System.Windows.Application.Current.Shutdown();
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show((_english ? "The app could not be restarted as administrator: "
+                                      : "Die App konnte nicht als Administrator neu gestartet werden: ") + exception.Message,
+                "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
-    private IReadOnlyList<UserEntry> ReadLocalUsers()
+    private static bool IsProtectedUser(UserEntry user) =>
+        string.IsNullOrWhiteSpace(user.Sid) || user.Sid.EndsWith("-500", StringComparison.Ordinal) ||
+        user.Sid.EndsWith("-501", StringComparison.Ordinal) || user.Sid.EndsWith("-503", StringComparison.Ordinal) ||
+        user.Sid.EndsWith("-504", StringComparison.Ordinal);
+
+    private void UserEditError(string name, Exception exception)
     {
-        const string usersCommand = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-LocalUser | Select-Object Name,Enabled,Description | ConvertTo-Json -Compress";
+        Log((_english ? "Account management failed for " : "Kontoverwaltung fehlgeschlagen für ") + name + ": " + exception.Message);
+        MessageBox.Show((_english ? "Windows could not complete the account change. The account may have been partially changed: " : "Windows konnte die Kontoänderung nicht vollständig ausführen. Das Konto kann teilweise geändert worden sein: ") + exception.Message, "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Error);
+        LoadUsers(null, null!);
+    }
+
+    private void ResetPasswordFor(UserEntry user)
+    {
+        if (!RequireUserAdmin()) return;
+        if (IsProtectedUser(user))
+        {
+            MessageBox.Show(_english ? "This built-in Windows account is protected." : "Dieses integrierte Windows-Konto ist geschützt.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        var choice = PasswordResetDialog.Prompt(this, user.Name, _english);
+        if (choice is null) return;
+        var confirm = choice.RemovePassword
+            ? (_english ? $"Remove the password for {user.Name}? This makes local sign-in without a password possible. Any Windows Hello PIN remains separate."
+                        : $"Kennwort für {user.Name} entfernen? Damit ist die lokale Anmeldung ohne Kennwort möglich. Eine Windows-Hello-PIN bleibt davon unberührt.")
+            : (_english ? $"Reset the Windows password for {user.Name}? This will immediately replace the current password."
+                        : $"Windows-Kennwort für {user.Name} zurücksetzen? Das bisherige Kennwort wird sofort ersetzt.");
+        if (MessageBox.Show(confirm, "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        try
+        {
+            LocalUserManager.ChangePassword(user.Name, user.Sid!, choice.Password, choice.RemovePassword);
+            Log((_english ? (choice.RemovePassword ? "Password removed for " : "Password changed for ")
+                          : (choice.RemovePassword ? "Kennwort entfernt für " : "Kennwort geändert für ")) + user.Name + ".");
+            MessageBox.Show(_english ? (choice.RemovePassword ? "The password was removed. The Windows Hello PIN was not changed." : "The password was changed.")
+                                     : (choice.RemovePassword ? "Das Kennwort wurde entfernt. Die Windows-Hello-PIN wurde nicht geändert." : "Das Kennwort wurde geändert."),
+                "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception exception) { UserEditError(user.Name, exception); }
+    }
+
+    private IReadOnlyList<UserEntry> ReadLocalUsers(bool requireAdminMembership = false)
+    {
+        const string usersCommand = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-LocalUser | Select-Object Name,FullName,Enabled,Description,@{Name='SidValue';Expression={$_.SID.Value}} | ConvertTo-Json -Compress";
         const string adminsCommand = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-LocalGroupMember -SID S-1-5-32-544 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name | ConvertTo-Json -Compress";
         using var users = JsonDocument.Parse(RunCaptured("powershell.exe", $"-NoProfile -NonInteractive -Command \"{usersCommand}\""));
         var adminNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -800,15 +1285,22 @@ public partial class MainWindow : Window
             var names = admins.RootElement.ValueKind == JsonValueKind.Array ? admins.RootElement.EnumerateArray().Select(item => item.GetString() ?? string.Empty) : new[] { admins.RootElement.GetString() ?? string.Empty };
             foreach (var name in names) adminNames.Add(name);
         }
-        catch (Exception) { /* Keep the complete user list even if group membership cannot be read. */ }
+        catch (Exception exception)
+        {
+            if (requireAdminMembership)
+                throw new InvalidOperationException("Die Administratorgruppen-Mitgliedschaft konnte nicht geprüft werden.", exception);
+            // Keep the complete user list even if group membership cannot be read.
+        }
         var entries = users.RootElement.ValueKind == JsonValueKind.Array ? users.RootElement.EnumerateArray().ToArray() : new[] { users.RootElement };
         return entries.Select(item =>
         {
             var name = item.GetProperty("Name").GetString() ?? "Unbekannt";
             var active = item.GetProperty("Enabled").GetBoolean();
             var description = item.TryGetProperty("Description", out var descriptionValue) && descriptionValue.ValueKind == JsonValueKind.String ? descriptionValue.GetString() ?? string.Empty : string.Empty;
+            var fullName = item.TryGetProperty("FullName", out var fullValue) && fullValue.ValueKind == JsonValueKind.String ? fullValue.GetString() ?? string.Empty : string.Empty;
+            var sid = item.TryGetProperty("SidValue", out var sidValue) && sidValue.ValueKind == JsonValueKind.String ? sidValue.GetString() : null;
             var admin = adminNames.Any(value => value.EndsWith("\\" + name, StringComparison.OrdinalIgnoreCase) || value.Equals(name, StringComparison.OrdinalIgnoreCase));
-            return new UserEntry(name, admin ? "Administrator" : (_english ? "Local user" : "Lokales Benutzerkonto"), description, active ? (_english ? "Active" : "Aktiv") : (_english ? "Disabled" : "Deaktiviert"), active);
+            return new UserEntry(name, admin ? "Administrator" : (_english ? "Standard user" : "Standardbenutzer"), description, active ? (_english ? "Active" : "Aktiv") : (_english ? "Disabled" : "Deaktiviert"), active, fullName, sid);
         }).OrderBy(user => user.Name, StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
@@ -821,7 +1313,7 @@ public partial class MainWindow : Window
         return output;
     }
 
-    private static bool IsAdmin() { using var identity = WindowsIdentity.GetCurrent(); return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator); }
+    private static bool IsAdmin() => ElevationService.IsElevated();
 
     public void ExecuteTrayAction(string action)
     {
@@ -829,7 +1321,7 @@ public partial class MainWindow : Window
         {
             if (IsBusy)
             {
-                MessageBox.Show(_english ? "Finish the active timer or repair first." : "Bitte zuerst den aktiven Timer oder die Reparatur beenden.", "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(_english ? "Finish the active timer or repair first." : "Bitte zuerst den aktiven Timer oder die Reparatur beenden.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             switch (action)
@@ -840,55 +1332,349 @@ public partial class MainWindow : Window
             }
         });
     }
-    private void Window_Closing(object? s, CancelEventArgs e) { if (!IsBusy) return; e.Cancel = true; MessageBox.Show(_english ? "Finish the active timer or repair first." : "Bitte zuerst den aktiven Timer oder die Reparatur beenden.", "Power Control PRO", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    private void Window_Closing(object? s, CancelEventArgs e) { if (!IsBusy) return; e.Cancel = true; MessageBox.Show(_english ? "Finish the active timer or repair first." : "Bitte zuerst den aktiven Timer oder die Reparatur beenden.", "PowerLeitstand PRO", MessageBoxButton.OK, MessageBoxImage.Warning); }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] private struct UserInfo1003 { [MarshalAs(UnmanagedType.LPWStr)] public string Password; }
-    [DllImport("Netapi32.dll", CharSet = CharSet.Unicode)] private static extern int NetUserSetInfo(string? servername, string username, int level, ref UserInfo1003 buf, out int parmError);
 }
 
-public sealed record UserEntry(string Name, string Role, string Description, string Status, bool Enabled);
+public sealed record UserEntry(string Name, string Role, string Description, string Status, bool Enabled, string FullName = "", string? Sid = null);
+
+internal sealed record PasswordResetChoice(string Password, bool RemovePassword);
 
 internal sealed class PasswordResetDialog : Window
 {
     private readonly PasswordBox _first = new() { Margin = new Thickness(0, 5, 0, 10) };
     private readonly PasswordBox _second = new() { Margin = new Thickness(0, 5, 0, 12) };
+    private readonly CheckBox _removePassword = new();
+    private readonly StackPanel _passwordFields = new();
     private readonly TextBlock _error = new() { Foreground = Brushes.IndianRed, TextWrapping = TextWrapping.Wrap };
     private readonly bool _english;
-    private string? Result { get; set; }
+    private PasswordResetChoice? Result { get; set; }
 
     private PasswordResetDialog(Window owner, string username, bool english)
     {
-        _english = english; Owner = owner; Icon = owner.Icon; Title = english ? "Reset password" : "Kennwort zurücksetzen"; Width = 390; Height = 290; ResizeMode = ResizeMode.NoResize; WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        var textBrush = owner.Resources["TextBrush"] as Brush ?? Brushes.White;
-        var subtleBrush = owner.Resources["SubtleTextBrush"] as Brush ?? Brushes.LightSteelBlue;
-        var cardBrush = owner.Resources["CardBrush"] as Brush ?? Brushes.Black;
-        var buttonBrush = owner.Resources["ButtonBrush"] as Brush ?? Brushes.SteelBlue;
-        var accentBrush = owner.Resources["AccentBrush"] as Brush ?? Brushes.SteelBlue;
-        var stack = new StackPanel();
-        stack.Children.Add(new TextBlock { Text = (english ? "New password for: " : "Neues Kennwort für: ") + username, FontWeight = FontWeights.Bold, Foreground = textBrush, FontSize = 16 });
-        stack.Children.Add(new TextBlock { Text = english ? "Windows Hello PINs are managed in Windows and cannot be changed here." : "Windows-Hello-PINs werden von Windows verwaltet und können hier nicht geändert werden.", Foreground = subtleBrush, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) });
-        stack.Children.Add(new TextBlock { Text = english ? "New password" : "Neues Kennwort", Foreground = textBrush });
-        stack.Children.Add(_first);
-        stack.Children.Add(new TextBlock { Text = english ? "Repeat password" : "Kennwort wiederholen", Foreground = textBrush });
-        stack.Children.Add(_second);
-        stack.Children.Add(_error);
-        var buttons = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = System.Windows.HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
-        var cancel = new Button { Content = english ? "Cancel" : "Abbrechen", Background = buttonBrush, Foreground = textBrush, BorderBrush = accentBrush, Padding = new Thickness(12, 5, 12, 5), Margin = new Thickness(0, 0, 8, 0) };
+        _english = english;
+        Owner = owner;
+        Resources.MergedDictionaries.Add(owner.Resources);
+        Icon = owner.Icon;
+        Title = english ? "Reset password" : "Kennwort zurücksetzen";
+        Width = MinWidth = MaxWidth = 390;
+        Height = MaxHeight = 370;
+        MinHeight = 284;
+        ResizeMode = ResizeMode.NoResize;
+        WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        WindowStyle = WindowStyle.None;
+        ShowInTaskbar = false;
+        UseLayoutRounding = true;
+        SnapsToDevicePixels = true;
+        FontFamily = new System.Windows.Media.FontFamily((owner as MainWindow)?.CurrentFontFamily ?? "Segoe UI");
+        TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
+        TextOptions.SetTextRenderingMode(this, TextRenderingMode.ClearType);
+        var text = owner.TryFindResource("TextBrush") as Brush ?? Brushes.White;
+        var subtle = owner.TryFindResource("SubtleTextBrush") as Brush ?? Brushes.LightSteelBlue;
+        var accent = owner.TryFindResource("AccentBrush") as Brush ?? Brushes.DeepSkyBlue;
+        var input = owner.TryFindResource("InputBrush") as Brush ?? Brushes.Black;
+        var inputBorder = owner.TryFindResource("InputBorderBrush") as Brush ?? accent;
+        var button = owner.TryFindResource("ButtonBrush") as Brush ?? input;
+        var danger = owner.TryFindResource("DangerBrush") as Brush ?? Brushes.DarkRed;
+        var dangerBorder = owner.TryFindResource("DangerBorderBrush") as Brush ?? Brushes.IndianRed;
+        Background = input;
+
+        var root = new Border
+        {
+            Background = owner.TryFindResource("CardSurfaceBrush") as Brush ?? input,
+            BorderBrush = accent, BorderThickness = new Thickness(2),
+            CornerRadius = new CornerRadius(11), Padding = new Thickness(11, 9, 11, 7)
+        };
+        var layout = new Grid();
+        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(48) });
+        layout.RowDefinitions.Add(new RowDefinition());
+        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(43) });
+
+        var header = new Grid();
+        header.ColumnDefinitions.Add(new ColumnDefinition());
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var heading = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        heading.Children.Add(DrawIcon("M 7,12 A 5,5 0 1 1 12,7 A 5,5 0 0 1 7,12 M 10,10 L 20,20 M 15,15 L 18,12",
+            32, accent, new Thickness(8, 0, 12, 0)));
+        var resetKey = (System.Windows.Shapes.Path)heading.Children[0];
+        resetKey.Data = Geometry.Parse("M 8,2 A 6,6 0 1 1 8,14 A 6,6 0 1 1 8,2 M 12,12 L 22,22 M 17,17 L 20,14 M 19,19 L 22,16");
+        resetKey.Stroke = new SolidColorBrush(Color.FromRgb(244, 195, 90));
+        resetKey.Width = resetKey.Height = 30;
+        resetKey.Margin = new Thickness(7, 0, 14, 0);
+        var headingText = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        headingText.Children.Add(new TextBlock { Text = Title, Foreground = text, FontSize = 19, FontWeight = FontWeights.Bold });
+        headingText.Children.Add(new TextBlock
+        {
+            Text = english ? "Set a new local Windows password" : "Lokales Windows-Kennwort neu setzen",
+            Foreground = subtle, FontSize = 11
+        });
+        heading.Children.Add(headingText);
+        header.Children.Add(heading);
+        var close = new Button { Content = "×", Style = owner.FindResource("OptionsCloseButton") as System.Windows.Style, Width = 37, Height = 35, FontSize = 21 };
+        close.Click += (_, _) => DialogResult = false;
+        Grid.SetColumn(close, 1);
+        header.Children.Add(close);
+        header.MouseLeftButtonDown += (_, e) => { if (e.ButtonState == MouseButtonState.Pressed) DragMove(); };
+        layout.Children.Add(header);
+
+        var body = new StackPanel { Margin = new Thickness(1, 5, 1, 0) };
+        body.Children.Add(new TextBlock
+        {
+            Text = (english ? "New password for: " : "Neues Kennwort für: ") + username,
+            Foreground = text, FontSize = 13, FontWeight = FontWeights.Bold
+        });
+        body.Children.Add(new Border { Height = 8, Background = Brushes.Transparent });
+        _passwordFields.Children.Add(PasswordRow(english ? "New password" : "Neues Kennwort", english ? "Enter password" : "Kennwort eingeben",
+            _first, owner, text, subtle, accent, input, inputBorder, button));
+        _passwordFields.Children.Add(PasswordRow(english ? "Repeat password" : "Kennwort wiederholen",
+            english ? "Repeat password" : "Kennwort erneut eingeben",
+            _second, owner, text, subtle, accent, input, inputBorder, button));
+        body.Children.Add(new Border
+        {
+            Background = input, BorderBrush = inputBorder, BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(7), ClipToBounds = true, Child = _passwordFields
+        });
+        var removeRow = new Grid { Height = 39, Margin = new Thickness(0, 7, 0, 0) };
+        removeRow.ColumnDefinitions.Add(new ColumnDefinition());
+        removeRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        removeRow.Children.Add(new TextBlock
+        {
+            Text = english ? "Remove password (less secure)" : "Kennwort entfernen (unsicher)",
+            Foreground = text, FontSize = 12, VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(9, 0, 0, 0)
+        });
+        _removePassword.Style = owner.FindResource("SettingsSwitch") as System.Windows.Style;
+        _removePassword.Width = 57;
+        _removePassword.Height = 27;
+        _removePassword.VerticalAlignment = VerticalAlignment.Center;
+        _removePassword.Margin = new Thickness(0, 0, 8, 0);
+        System.Windows.Automation.AutomationProperties.SetName(_removePassword,
+            english ? "Remove password" : "Kennwort entfernen");
+        Grid.SetColumn(_removePassword, 1);
+        removeRow.Children.Add(_removePassword);
+        body.Children.Add(new Border
+        {
+            Background = input, BorderBrush = inputBorder, BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(7), Child = removeRow
+        });
+        _removePassword.Checked += (_, _) =>
+        {
+            _first.Clear();
+            _second.Clear();
+            _passwordFields.Visibility = Visibility.Collapsed;
+            _error.Visibility = Visibility.Collapsed;
+            Top += (Height - 284) / 2;
+            Height = 284;
+        };
+        _removePassword.Unchecked += (_, _) =>
+        {
+            _passwordFields.Visibility = Visibility.Visible;
+            Top -= (370 - Height) / 2;
+            Height = 370;
+            _first.Focus();
+        };
+        var pinPanel = new StackPanel { Margin = new Thickness(8, 6, 8, 0) };
+        pinPanel.Children.Add(new TextBlock
+        {
+            Text = english ? "A Windows Hello PIN stays separate. Only the signed-in user can manage it in Windows."
+                           : "Die Windows-Hello-PIN bleibt getrennt. Nur der angemeldete Benutzer verwaltet sie in Windows.",
+            Foreground = subtle, FontSize = 11, TextWrapping = TextWrapping.Wrap
+        });
+        var pinButton = new Button
+        {
+            Content = english ? "Open Windows sign-in options" : "Windows-Anmeldeoptionen öffnen",
+            Style = owner.FindResource("UserToolbarButton") as System.Windows.Style,
+            Background = button, BorderBrush = accent, Foreground = text,
+            Height = 27, FontSize = 11, Margin = new Thickness(0, 5, 0, 0),
+            HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch
+        };
+        pinButton.Click += (_, _) =>
+        {
+            try { Process.Start(new ProcessStartInfo("ms-settings:signinoptions") { UseShellExecute = true }); }
+            catch (Exception exception)
+            {
+                _error.Text = (english ? "Could not open Windows settings: " : "Windows-Einstellungen konnten nicht geöffnet werden: ") + exception.Message;
+                _error.Visibility = Visibility.Visible;
+            }
+        };
+        pinPanel.Children.Add(pinButton);
+        body.Children.Add(pinPanel);
+        _error.Foreground = dangerBorder;
+        _error.FontSize = 11;
+        _error.Margin = new Thickness(3, 5, 0, 0);
+        _error.Visibility = Visibility.Collapsed;
+        body.Children.Add(_error);
+        Grid.SetRow(body, 1);
+        layout.Children.Add(body);
+
+        var actions = new Grid { Margin = new Thickness(13, 0, 13, 0) };
+        actions.ColumnDefinitions.Add(new ColumnDefinition());
+        actions.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(10) });
+        actions.ColumnDefinitions.Add(new ColumnDefinition());
+        var cancel = ActionButton(owner, "M 2,2 L 18,18 M 18,2 L 2,18", english ? "Cancel" : "Abbrechen",
+            danger, dangerBorder, Brushes.White, Brushes.White);
+        cancel.IsCancel = true;
         cancel.Click += (_, _) => DialogResult = false;
-        buttons.Children.Add(cancel);
-        var confirm = new Button { Content = english ? "Change password" : "Kennwort ändern", Background = buttonBrush, Foreground = textBrush, BorderBrush = accentBrush, Padding = new Thickness(12, 5, 12, 5) };
+        actions.Children.Add(cancel);
+        var confirm = ActionButton(owner, "M 3,10 L 8,15 L 18,4", english ? "Change password" : "Kennwort ändern",
+            button, accent, accent, text);
+        var confirmContent = (StackPanel)confirm.Content;
+        var confirmIcon = (System.Windows.Shapes.Path)confirmContent.Children[0];
+        var confirmLabel = (TextBlock)confirmContent.Children[1];
+        _removePassword.Checked += (_, _) =>
+        {
+            confirmLabel.Text = english ? "Remove password" : "Kennwort entfernen";
+            confirm.Background = danger;
+            confirm.BorderBrush = dangerBorder;
+            confirmIcon.Stroke = Brushes.White;
+            confirmLabel.Foreground = Brushes.White;
+        };
+        _removePassword.Unchecked += (_, _) =>
+        {
+            confirmLabel.Text = english ? "Change password" : "Kennwort ändern";
+            confirm.Background = button;
+            confirm.BorderBrush = accent;
+            confirmIcon.Stroke = accent;
+            confirmLabel.Foreground = text;
+        };
+        confirm.IsDefault = true;
         confirm.Click += Confirm;
-        buttons.Children.Add(confirm);
-        stack.Children.Add(buttons);
-        Content = new Border { Padding = new Thickness(20), Background = cardBrush, BorderBrush = accentBrush, BorderThickness = new Thickness(2), Child = stack };
+        Grid.SetColumn(confirm, 2);
+        actions.Children.Add(confirm);
+        Grid.SetRow(actions, 2);
+        layout.Children.Add(actions);
+        root.Child = layout;
+        Content = root;
+        Loaded += (_, _) => _first.Focus();
+    }
+
+    private Border PasswordRow(string label, string hint, PasswordBox hidden, Window owner,
+        Brush text, Brush subtle, Brush accent, Brush input, Brush inputBorder, Brush button)
+    {
+        var row = new Grid { Height = 42 };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(148) });
+        row.ColumnDefinitions.Add(new ColumnDefinition());
+        var caption = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(9, 0, 0, 0) };
+        caption.Children.Add(DrawIcon("M 4,9 L 17,9 L 17,20 L 4,20 Z M 7,9 L 7,6 A 3.5,3.5 0 0 1 14,6 L 14,9", 19, accent, new Thickness(0, 0, 8, 0)));
+        caption.Children.Add(new TextBlock { Text = label, Foreground = text, FontSize = 11, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        row.Children.Add(caption);
+        var shell = new Border
+        {
+            Background = input, BorderBrush = accent, BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(5), Margin = new Thickness(3, 5, 7, 5)
+        };
+        var fieldGrid = new Grid();
+        fieldGrid.ColumnDefinitions.Add(new ColumnDefinition());
+        fieldGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(33) });
+        hidden.Margin = new Thickness(0);
+        hidden.Background = Brushes.Transparent;
+        hidden.Foreground = text;
+        hidden.BorderThickness = new Thickness(0);
+        hidden.FontSize = 12;
+        hidden.Padding = new Thickness(8, 3, 4, 3);
+        var revealed = new System.Windows.Controls.TextBox
+        {
+            Visibility = Visibility.Collapsed, Background = Brushes.Transparent, Foreground = text,
+            BorderThickness = new Thickness(0), FontSize = 12, Padding = new Thickness(8, 3, 4, 3)
+        };
+        fieldGrid.Children.Add(hidden);
+        fieldGrid.Children.Add(revealed);
+        var placeholder = new TextBlock
+        {
+            Text = hint, Foreground = subtle, FontSize = 11,
+            VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0),
+            IsHitTestVisible = false
+        };
+        fieldGrid.Children.Add(placeholder);
+        bool visible = false;
+        bool clearingRevealed = false;
+        void SyncHint() => placeholder.Visibility = (visible ? revealed.Text.Length : hidden.Password.Length) == 0 ? Visibility.Visible : Visibility.Collapsed;
+        hidden.PasswordChanged += (_, _) =>
+        {
+            if (hidden.Password.Length == 0 && revealed.Text.Length > 0)
+            {
+                clearingRevealed = true;
+                revealed.Clear();
+                clearingRevealed = false;
+            }
+            SyncHint();
+        };
+        revealed.TextChanged += (_, _) => { if (!clearingRevealed) hidden.Password = revealed.Text; SyncHint(); };
+        var eye = new Button
+        {
+            Style = owner.FindResource("SmallButton") as System.Windows.Style,
+            Background = button, BorderBrush = accent, BorderThickness = new Thickness(1),
+            Padding = new Thickness(3), ToolTip = _english ? "Show password" : "Kennwort anzeigen",
+            Content = DrawIcon("M 1,10 C 5,3 15,3 19,10 C 15,17 5,17 1,10 Z M 10,7 A 3,3 0 1 0 10,13 A 3,3 0 1 0 10,7",
+                18, text, new Thickness(0))
+        };
+        eye.Click += (_, _) =>
+        {
+            visible = !visible;
+            if (visible)
+            {
+                revealed.Text = hidden.Password;
+                revealed.Visibility = Visibility.Visible;
+                hidden.Visibility = Visibility.Collapsed;
+                revealed.Focus();
+                revealed.CaretIndex = revealed.Text.Length;
+            }
+            else
+            {
+                hidden.Password = revealed.Text;
+                clearingRevealed = true;
+                revealed.Clear();
+                clearingRevealed = false;
+                hidden.Visibility = Visibility.Visible;
+                revealed.Visibility = Visibility.Collapsed;
+                hidden.Focus();
+            }
+            eye.ToolTip = visible ? (_english ? "Hide password" : "Kennwort verbergen")
+                                  : (_english ? "Show password" : "Kennwort anzeigen");
+            SyncHint();
+        };
+        Grid.SetColumn(eye, 1);
+        fieldGrid.Children.Add(eye);
+        shell.Child = fieldGrid;
+        Grid.SetColumn(shell, 1);
+        row.Children.Add(shell);
+        return new Border { BorderBrush = inputBorder, BorderThickness = new Thickness(0, 0, 0, 0.7), Child = row };
+    }
+
+    private static System.Windows.Shapes.Path DrawIcon(string geometry, double size, Brush stroke, Thickness margin) =>
+        new()
+        {
+            Data = Geometry.Parse(geometry), Width = size, Height = size, Stretch = Stretch.Uniform,
+            Stroke = stroke, StrokeThickness = 1.9, StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round, VerticalAlignment = VerticalAlignment.Center, Margin = margin
+        };
+
+    private static Button ActionButton(Window owner, string icon, string label,
+        Brush background, Brush outline, Brush iconColor, Brush textColor)
+    {
+        var content = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = System.Windows.HorizontalAlignment.Center };
+        content.Children.Add(DrawIcon(icon, 19, iconColor, new Thickness(0, 0, 7, 0)));
+        content.Children.Add(new TextBlock { Text = label, Foreground = textColor, FontSize = 13, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        return new Button
+        {
+            Style = owner.FindResource("UserToolbarButton") as System.Windows.Style,
+            Background = background, BorderBrush = outline, BorderThickness = new Thickness(1.8),
+            Height = 42, Padding = new Thickness(5, 3, 5, 3), Content = content
+        };
     }
 
     private void Confirm(object? sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_first.Password)) { _error.Text = _english ? "Enter a password." : "Bitte ein Kennwort eingeben."; return; }
-        if (_first.Password != _second.Password) { _error.Text = _english ? "The passwords do not match." : "Die Kennwörter stimmen nicht überein."; return; }
-        Result = _first.Password; DialogResult = true;
+        if (_removePassword.IsChecked == true)
+        {
+            Result = new PasswordResetChoice(string.Empty, true);
+            DialogResult = true;
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_first.Password)) { _error.Text = _english ? "Enter a password." : "Bitte ein Kennwort eingeben."; _error.Visibility = Visibility.Visible; return; }
+        if (_first.Password != _second.Password) { _error.Text = _english ? "The passwords do not match." : "Die Kennwörter stimmen nicht überein."; _error.Visibility = Visibility.Visible; return; }
+        Result = new PasswordResetChoice(_first.Password, false); DialogResult = true;
     }
 
-    public static string? Prompt(Window owner, string username, bool english) { var dialog = new PasswordResetDialog(owner, username, english); return dialog.ShowDialog() == true ? dialog.Result : null; }
+    public static PasswordResetChoice? Prompt(Window owner, string username, bool english) { var dialog = new PasswordResetDialog(owner, username, english); return dialog.ShowDialog() == true ? dialog.Result : null; }
 }

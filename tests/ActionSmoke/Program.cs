@@ -1,6 +1,80 @@
 using PowerControlProWpf;
 using System.Text.Json;
 using System.Text;
+using System.Drawing;
+
+static string ReleaseJson(string tag, params string[] files) => JsonSerializer.Serialize(new
+{
+    tag_name = tag,
+    assets = files.Select(name => new
+    {
+        name,
+        digest = "sha256:" + new string('a', 64),
+        browser_download_url = $"https://github.com/rx8boss/powerleitstand-pro/releases/download/{tag}/{name}"
+    })
+});
+
+using (var release = JsonDocument.Parse(ReleaseJson("v1.1.1", "PowerLeitstand-PRO.exe", "PowerLeitstand-PRO.zip")))
+{
+    var update = ReleaseAssetSelector.Select(release.RootElement, new Version(1, 1, 0));
+    if (update?.Version != new Version(1, 1, 1) ||
+        !update.DownloadUrl.EndsWith("/PowerLeitstand-PRO.exe", StringComparison.Ordinal) ||
+        update.Sha256 != new string('a', 64))
+        throw new Exception("The latest release did not select its only EXE and digest.");
+}
+using (var release = JsonDocument.Parse(ReleaseJson("v1.1.0", "PowerLeitstand-PRO.exe")))
+    if (ReleaseAssetSelector.Select(release.RootElement, new Version(1, 1, 0)) is not null)
+        throw new Exception("An installed release was incorrectly offered as an update.");
+using (var release = JsonDocument.Parse(ReleaseJson("v1.1.1", "PowerLeitstand-PRO.zip")))
+{
+    try { ReleaseAssetSelector.Select(release.RootElement, new Version(1, 1, 0)); throw new Exception("Missing EXE was accepted."); }
+    catch (FileNotFoundException) { }
+}
+using (var release = JsonDocument.Parse(ReleaseJson("v1.1.1", "PowerLeitstand-PRO.exe", "helper.exe")))
+{
+    try { ReleaseAssetSelector.Select(release.RootElement, new Version(1, 1, 0)); throw new Exception("Multiple EXEs were accepted."); }
+    catch (InvalidDataException) { }
+}
+using (var release = JsonDocument.Parse(ReleaseJson("v1.1.1", "PowerLeitstand-PRO.exe")
+    .Replace("sha256:" + new string('a', 64), "sha256:invalid", StringComparison.Ordinal)))
+{
+    try { ReleaseAssetSelector.Select(release.RootElement, new Version(1, 1, 0)); throw new Exception("Invalid digest was accepted."); }
+    catch (InvalidDataException) { }
+}
+using (var release = JsonDocument.Parse(ReleaseJson("v1.1.1", "PowerLeitstand-PRO.exe")
+    .Replace("github.com/rx8boss/powerleitstand-pro", "github.com/another/repository", StringComparison.Ordinal)))
+{
+    try { ReleaseAssetSelector.Select(release.RootElement, new Version(1, 1, 0)); throw new Exception("Foreign download URL was accepted."); }
+    catch (InvalidDataException) { }
+}
+Console.WriteLine("PASS release update: version, unique EXE, SHA-256 and ambiguous assets");
+
+var primary = new Rectangle(0, 0, 1920, 1040);
+var secondary = new Rectangle(1920, 0, 1280, 984);
+var screens = new (string Name, Rectangle WorkArea)[] { ("PRIMARY", primary), ("SECONDARY", secondary) };
+if (WindowPlacementMath.RestoreOrCenter(primary, screens, null, null, null, 900, 640) != new Point(510, 200) ||
+    WindowPlacementMath.RestoreOrCenter(primary, screens, "SECONDARY", 2000, 100, 900, 640) != new Point(2000, 100) ||
+    WindowPlacementMath.RestoreOrCenter(primary, screens, "SECONDARY", 3000, 900, 900, 640) != new Point(2300, 344) ||
+    WindowPlacementMath.RestoreOrCenter(primary, screens, "MISSING", 2000, 100, 900, 640) != new Point(510, 200))
+    throw new Exception("Window placement center, restore or monitor fallback failed.");
+Console.WriteLine("PASS window placement: center, restore, clamp and missing monitor");
+
+foreach (var (name, valid) in new (string, bool)[]
+{
+    ("test.user", true), ("", false), ("bad/name", false), (" trailing ", false), (new string('x', 21), false)
+})
+    if (LocalUserManager.IsValidName(name) != valid)
+        throw new Exception($"Unexpected account-name validation for {name}.");
+var securedFlags = LocalUserManager.AccountFlags(true, false);
+var passwordlessFlags = LocalUserManager.AccountFlags(true, true);
+var disabledFlags = LocalUserManager.AccountFlags(false, true);
+if ((securedFlags & 0x20) != 0 || (passwordlessFlags & 0x20) == 0 || (disabledFlags & 0x02) == 0)
+    throw new Exception("Passwordless or disabled account flags are incorrect.");
+Console.WriteLine("PASS local account rules: names, passwordless mode and disabled flag");
+if (LocalUserManager.PasswordFlags(0x0202, true) != 0x0222 ||
+    LocalUserManager.PasswordFlags(0x0222, false) != 0x0202)
+    throw new Exception("Password removal flag transition is incorrect.");
+Console.WriteLine("PASS local password flags: removal and new password");
 
 var sfcBytes = Encoding.Unicode.GetBytes("Überprüfung 34 % abgeschlossen.\r\n");
 if (RepairOutputEncoding.ForMode("sfc").CodePage != Encoding.Unicode.CodePage ||

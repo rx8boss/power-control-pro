@@ -1,5 +1,5 @@
 name: Fehler melden / Report a bug
-description: Melde einen Fehler in Power Control PRO. / Report a problem in Power Control PRO.
+description: Melde einen Fehler in PowerLeitstand PRO. / Report a problem in PowerLeitstand PRO.
 title: "[Fehler] "
 body:
   - type: markdown
@@ -7,7 +7,7 @@ body:
       value: |
         Danke für deine Meldung! / Thanks for reporting a bug!
 
-        Sicherheitslücken bitte **nicht öffentlich** melden. Nutze dafür [Report a vulnerability](https://github.com/rx8boss/power-control-pro/security/advisories).
+        Sicherheitslücken bitte **nicht öffentlich** melden. Nutze dafür [Report a vulnerability](https://github.com/rx8boss/powerleitstand-pro/security/advisories).
         Please report security vulnerabilities **privately**, not in an issue.
 
         Entferne Passwörter, Benutzernamen und andere persönliche Daten aus Logs und Screenshots.

@@ -15,6 +15,10 @@ internal sealed class AppSettings
     public bool WarningEnabled { get; set; } = true;
     public string WarningSound { get; set; } = "system-warning.wav";
     public int WarningVolume { get; set; } = 80;
+    public bool RequestAdministratorOnLaunch { get; set; }
+    public int? WindowLeftPx { get; set; }
+    public int? WindowTopPx { get; set; }
+    public string? WindowMonitor { get; set; }
 
     public static AppSettings Load()
     {

@@ -12,11 +12,26 @@ namespace PowerControlProWpf;
 
 internal static class ThemedMessageBox
 {
-    internal static MessageBoxResult Show(string message, string title = "Power Control PRO",
+    internal static bool ShowElevationPrompt(MainWindow owner)
+    {
+        var english = owner.IsEnglish;
+        var dialog = new ThemedMessageBoxWindow(
+            english ? "This app is not running with administrator rights. Restart it as administrator? Windows will ask for confirmation."
+                    : "Diese App läuft nicht mit Administratorrechten. Als Administrator neu starten? Windows fragt nach einer Bestätigung.",
+            "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning,
+            ThemePalette.For(owner.CurrentThemeName), english);
+        dialog.Owner = owner;
+        dialog.ConfigureElevationPrompt(english);
+        dialog.Loaded += (_, _) => UiSoundService.PlayAdminWarning();
+        dialog.ShowDialog();
+        return dialog.Result == MessageBoxResult.Yes;
+    }
+
+    internal static MessageBoxResult Show(string message, string title = "PowerLeitstand PRO",
         MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None) =>
         Show(Application.Current?.MainWindow, message, title, buttons, icon);
 
-    internal static MessageBoxResult Show(Window? owner, string message, string title = "Power Control PRO",
+    internal static MessageBoxResult Show(Window? owner, string message, string title = "PowerLeitstand PRO",
         MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.None)
     {
         var main = owner as MainWindow ?? Application.Current?.MainWindow as MainWindow;
@@ -109,7 +124,7 @@ public partial class ThemedMessageBoxWindow : Window
         if (buttons == MessageBoxButton.OK)
         {
             ConfirmButton.Visibility = Visibility.Collapsed;
-            CancelButton.Content = "OK";
+            CancelButton.Content = CreateActionContent("OK", "confirm", (Brush)Resources["DialogIconBrush"]);
             CancelButton.Style = (Style)FindResource("DialogButton");
             CancelButton.IsDefault = true;
             CancelButton.IsCancel = true;
@@ -129,12 +144,11 @@ public partial class ThemedMessageBoxWindow : Window
                     "signout" => english ? "Sign out" : "Abmelden",
                     _ => english ? "Yes" : "Ja"
                 };
-            ConfirmButton.Content = deleting || stoppingRepair || action is not null
-                ? CreateActionContent(confirmCaption, deleting ? "delete" : stoppingRepair ? "cancel" : action!,
-                    deleting || stoppingRepair ? (Brush)Resources["DialogDangerBorder"] : (Brush)Resources["DialogIconBrush"])
-                : confirmCaption;
+            ConfirmButton.Content = CreateActionContent(confirmCaption,
+                deleting ? "delete" : stoppingRepair ? "cancel" : action ?? "confirm",
+                deleting || stoppingRepair ? System.Windows.Media.Brushes.White : (Brush)Resources["DialogIconBrush"]);
             CancelButton.Content = stoppingRepair
-                ? english ? "Continue" : "Fortsetzen"
+                ? CreateActionContent(english ? "Continue" : "Fortsetzen", "continue", (Brush)Resources["DialogIconBrush"])
                 : CreateActionContent(english ? "Cancel" : "Abbrechen", "cancel",
                     (Brush)Resources["DialogDangerBorder"]);
             System.Windows.Automation.AutomationProperties.SetName(ConfirmButton, confirmCaption);
@@ -154,6 +168,28 @@ public partial class ThemedMessageBoxWindow : Window
         }
     }
 
+    internal void ConfigureElevationPrompt(bool english)
+    {
+        Width = 430;
+        DialogTitle.Text = english ? "Administrator rights required" : "Administratorrechte erforderlich";
+        WarningTriangle.Visibility = Visibility.Collapsed;
+        WarningMark.Visibility = Visibility.Collapsed;
+        ActionGlyph.Data = Geometry.Parse("M 12,1 L 21,5 L 20,13 C 19,18 15,21 12,23 C 9,21 5,18 4,13 L 3,5 Z M 8,12 L 11,15 L 16,9");
+        ActionGlyph.Fill = System.Windows.Media.Brushes.Transparent;
+        ActionGlyph.Visibility = Visibility.Visible;
+        var columns = ((Grid)ConfirmButton.Parent).ColumnDefinitions;
+        columns[0].Width = new GridLength(2, GridUnitType.Star);
+        columns[1].Width = new GridLength(1, GridUnitType.Star);
+        ConfirmButton.Content = CreateActionContent(english ? "Restart as administrator" : "Als Administrator neu starten",
+            "shield", (Brush)Resources["DialogIconBrush"]);
+        ConfirmButton.FontSize = 12;
+        CancelButton.Content = CreateActionContent("OK", "confirm", (Brush)Resources["DialogIconBrush"]);
+        CancelButton.Style = (Style)FindResource("DialogButton");
+        System.Windows.Automation.AutomationProperties.SetName(ConfirmButton,
+            english ? "Restart as administrator" : "Als Administrator neu starten");
+        System.Windows.Automation.AutomationProperties.SetName(CancelButton, "OK");
+    }
+
     private static Geometry IconGeometry(string kind) => Geometry.Parse(kind switch
     {
         "lock" => "M 6,9 L 6,6 C 6,0 16,0 16,6 L 16,9 M 4,9 L 18,9 L 18,21 L 4,21 Z M 11,13 L 11,17",
@@ -161,6 +197,9 @@ public partial class ThemedMessageBoxWindow : Window
         "restart" => "M 18,7 A 9,9 0 1 0 20,13 M 18,3 L 18,9 L 12,9",
         "signout" => "M 10,3 L 2,3 L 2,20 L 10,20 M 10,11 L 21,11 M 16,6 L 21,11 L 16,16",
         "delete" => "M 2,5 L 20,5 M 5,5 L 6,20 L 16,20 L 17,5 M 8,3 L 14,3 M 9,8 L 9,17 M 13,8 L 13,17",
+        "confirm" => "M 2,10 L 8,16 L 20,3",
+        "continue" => "M 3,3 L 3,18 L 20,10 Z",
+        "shield" => "M 11,1 L 20,5 L 19,13 C 18,18 14,21 11,23 C 8,21 4,18 3,13 L 2,5 Z M 7,12 L 10,15 L 15,9",
         _ => "M 4,4 L 18,18 M 18,4 L 4,18"
     });
 

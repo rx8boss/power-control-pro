@@ -28,7 +28,7 @@ internal static class Program
         Capture(messageType, ["Möchten Sie das Ereignisprotokoll unwiderruflich löschen?",
                 "Ereignisprotokoll löschen?", MessageBoxButton.YesNo, MessageBoxImage.Warning, palette, false],
             Path.Combine(args[0], "delete.png"));
-        Capture(messageType, ["Windows sperren jetzt ausführen?", "Power Control PRO",
+        Capture(messageType, ["Windows sperren jetzt ausführen?", "PowerLeitstand PRO",
                 MessageBoxButton.YesNo, MessageBoxImage.Question, palette, false],
             Path.Combine(args[0], "lock.png"));
         foreach (var (name, question) in new[]
@@ -37,11 +37,11 @@ internal static class Program
             ("restart", "Neustart jetzt ausführen?"),
             ("signout", "Abmelden jetzt ausführen?")
         })
-            Capture(messageType, [question, "Power Control PRO",
+            Capture(messageType, [question, "PowerLeitstand PRO",
                     MessageBoxButton.YesNo, MessageBoxImage.Question, palette, false],
                 Path.Combine(args[0], name + ".png"));
         Capture(messageType, ["Laufende Windows-Reparatur abbrechen? Ein Abbruch kann den Reparaturvorgang unvollständig lassen.",
-                "Power Control PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning, palette, false],
+                "PowerLeitstand PRO", MessageBoxButton.YesNo, MessageBoxImage.Warning, palette, false],
             Path.Combine(args[0], "stop-repair.png"));
 
         var repairType = assembly.GetType("PowerControlProWpf.RepairConfirmWindow", true)!;
@@ -53,13 +53,13 @@ internal static class Program
         {
             var themedPalette = paletteType.GetMethod("For", BindingFlags.NonPublic | BindingFlags.Static)!
                 .Invoke(null, [theme])!;
-            Capture(messageType, ["Windows sperren jetzt ausführen?", "Power Control PRO",
+            Capture(messageType, ["Windows sperren jetzt ausführen?", "PowerLeitstand PRO",
                     MessageBoxButton.YesNo, MessageBoxImage.Question, themedPalette, false],
                 Path.Combine(args[0], theme + "-lock.png"));
             Capture(repairType, ["SFC /scannow", themedPalette, false],
                 Path.Combine(args[0], theme + "-repair.png"));
         }
-        Capture(messageType, ["Lock Windows now?", "Power Control PRO",
+        Capture(messageType, ["Lock Windows now?", "PowerLeitstand PRO",
                 MessageBoxButton.YesNo, MessageBoxImage.Question, palette, true],
             Path.Combine(args[0], "english-lock.png"));
         Capture(repairType, ["SFC /scannow", palette, true],

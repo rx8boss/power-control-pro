@@ -1,7 +1,7 @@
 <Window x:Class="PowerControlProWpf.ThemedMessageBoxWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Power Control PRO" Icon="Assets/app-icon.ico"
+        Title="PowerLeitstand PRO" Icon="Assets/app-icon.ico"
         Width="374" MinHeight="140" MaxHeight="340" SizeToContent="Height"
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" UseLayoutRounding="True"

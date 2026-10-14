@@ -15,6 +15,7 @@ public partial class App : System.Windows.Application
     private readonly List<System.Drawing.Image> _trayImages = new();
     private string? _trayImageSet;
     private Forms.ToolStripMenuItem? _openItem;
+    private Forms.ToolStripMenuItem? _centerItem;
     private Forms.ToolStripLabel? _quickItem;
     private Forms.ToolStripMenuItem? _shutdownItem;
     private Forms.ToolStripMenuItem? _restartItem;
@@ -22,6 +23,7 @@ public partial class App : System.Windows.Application
     private Forms.ToolStripMenuItem? _exitItem;
     private MainWindow? _mainWindow;
     private bool _english;
+    private bool _updateBalloonActive;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -33,13 +35,56 @@ public partial class App : System.Windows.Application
             finally { Shutdown(); }
             return;
         }
-        SetCurrentProcessExplicitAppUserModelID("com.powercontrolpro.desktop.wpf");
+        if (e.Args.Length > 0 && e.Args[0] == "--update-helper")
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            try { await UpdateService.RunHelperAsync(e.Args); }
+            finally { Shutdown(); }
+            return;
+        }
+        var trayStart = e.Args.Contains("--tray", StringComparer.OrdinalIgnoreCase);
+        string? elevationError = null;
+        if (!trayStart && !e.Args.Contains("--elevation-attempted", StringComparer.OrdinalIgnoreCase) &&
+            AppSettings.Load().RequestAdministratorOnLaunch && !ElevationService.IsElevated())
+        {
+            try
+            {
+                if (ElevationService.TryRestartAsAdministrator(e.Args.Contains("--page-users", StringComparer.OrdinalIgnoreCase)))
+                {
+                    Shutdown();
+                    return;
+                }
+            }
+            catch (Exception exception) { elevationError = exception.Message; }
+        }
+        SetCurrentProcessExplicitAppUserModelID("com.powerleitstandpro.desktop.wpf");
         _mainWindow = new MainWindow();
         MainWindow = _mainWindow;
-        _mainWindow.StateChanged += (_, _) => UpdateTrayWindowItem();
+        _mainWindow.StateChanged += (_, _) =>
+        {
+            if (_mainWindow?.WindowState == WindowState.Minimized)
+            {
+                if (_mainWindow.IsVisible) UiSoundService.PlayMinimize();
+                _mainWindow.Dispatcher.BeginInvoke(() =>
+                {
+                    if (_mainWindow?.WindowState != WindowState.Minimized) return;
+                    _mainWindow.ShowInTaskbar = false;
+                    _mainWindow.Hide();
+                    UpdateTrayWindowItem();
+                });
+            }
+            UpdateTrayWindowItem();
+        };
         _mainWindow.IsVisibleChanged += (_, _) => UpdateTrayWindowItem();
         CreateTrayIcon();
-        _mainWindow.Show();
+        _ = _mainWindow.CheckForUpdatesOnStartupAsync();
+        if (e.Args.Contains("--page-users", StringComparer.OrdinalIgnoreCase))
+            _mainWindow.ShowUsersPage();
+        if (trayStart) _mainWindow.ShowInTaskbar = false;
+        else _mainWindow.Show();
+        if (elevationError is not null)
+            ThemedMessageBox.Show(_mainWindow, elevationError, "PowerLeitstand PRO",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
         UpdateTrayWindowItem();
     }
 
@@ -53,6 +98,7 @@ public partial class App : System.Windows.Application
             Padding = new Forms.Padding(7)
         };
         _openItem = CreateMenuItem((_, _) => ToggleWindow());
+        _centerItem = CreateMenuItem((_, _) => { RestoreWindow(); _mainWindow?.CenterWindowOnCursorScreen(); });
         _quickItem = new Forms.ToolStripLabel
         {
             Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold),
@@ -70,6 +116,7 @@ public partial class App : System.Windows.Application
             _shutdownItem, _restartItem, _lockItem,
             new Forms.ToolStripSeparator(), _exitItem
         });
+        _trayMenu.Items.Insert(1, _centerItem);
         _trayMenu.Opening += (_, _) => { UpdateTrayWindowItem(); UpdateTrayTimerState(_mainWindow?.IsBusy == true); };
 
         var resource = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Assets/app-icon.ico"));
@@ -82,7 +129,7 @@ public partial class App : System.Windows.Application
         _trayIcon = new Forms.NotifyIcon
         {
             Icon = _ownedIcon ?? System.Drawing.SystemIcons.Application,
-            Text = "Power Control PRO",
+            Text = "PowerLeitstand PRO",
             ContextMenuStrip = _trayMenu,
             Visible = true
         };
@@ -90,7 +137,11 @@ public partial class App : System.Windows.Application
         _trayIcon.BalloonTipClicked += (_, _) =>
         {
             RestoreWindow();
-            _mainWindow?.ShowRepairPage();
+            if (_updateBalloonActive)
+                _mainWindow?.OpenUpdateNotice(this, new RoutedEventArgs());
+            else
+                _mainWindow?.ShowRepairPage();
+            _updateBalloonActive = false;
         };
         UpdateTrayPresentation("Standard", false);
         UpdateTrayTimerState(_mainWindow?.IsBusy == true);
@@ -119,8 +170,18 @@ public partial class App : System.Windows.Application
     internal void ShowRepairNotification(bool success, string summary)
     {
         if (_trayIcon is null) return;
-        _trayIcon.ShowBalloonTip(8000, "Power Control PRO", summary,
+        _updateBalloonActive = false;
+        _trayIcon.ShowBalloonTip(8000, "PowerLeitstand PRO", summary,
             success ? Forms.ToolTipIcon.Info : Forms.ToolTipIcon.Error);
+    }
+
+    internal void ShowUpdateNotification(string version)
+    {
+        if (_trayIcon is null) return;
+        _updateBalloonActive = true;
+        _trayIcon.ShowBalloonTip(8000, "PowerLeitstand PRO",
+            _english ? $"Version {version} is available. Click to view the update."
+                     : $"Version {version} ist verfügbar. Zum Update hier klicken.", Forms.ToolTipIcon.Info);
     }
 
     internal void UpdateTrayPresentation(string theme, bool english)
@@ -128,6 +189,7 @@ public partial class App : System.Windows.Application
         if (_trayMenu is null) return;
         _english = english;
         UpdateTrayWindowItem();
+        _centerItem!.Text = english ? "Center window" : "Fenster zentrieren";
         _quickItem!.Text = english ? "Quick actions" : "Schnellaktionen";
         _shutdownItem!.Text = english ? "Shut down" : "Herunterfahren";
         _restartItem!.Text = english ? "Restart" : "Neustart";
@@ -182,6 +244,7 @@ public partial class App : System.Windows.Application
     private void RestoreWindow()
     {
         if (_mainWindow is null) return;
+        _mainWindow.ShowInTaskbar = true;
         _mainWindow.Show();
         _mainWindow.WindowState = WindowState.Normal;
         _mainWindow.Activate();
